@@ -18,6 +18,7 @@ export class ValidationPipe implements PipeTransform {
     const object = plainToClass(metatype, value);
     const errors = await validate(object);
     if (errors.length > 0) {
+      console.log(ValidationPipe.formatErrors(errors));
       throw new HttpException(
         `${ValidationPipe.formatErrors(errors)}`,
         HttpStatus.BAD_REQUEST,
@@ -38,6 +39,6 @@ export class ValidationPipe implements PipeTransform {
           return err.constraints[property];
         }
       })
-      .join(', ');
+      .join(',');
   }
 }

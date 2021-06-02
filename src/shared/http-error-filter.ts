@@ -21,7 +21,7 @@ export class HttpErrorFilter implements ExceptionFilter {
       status = HttpStatus.INTERNAL_SERVER_ERROR;
     }
     const devErrorResponse: any = {
-      success: false,
+      success: 'error',
       error: {
         code: status,
         timestamp: new Date().toISOString(),
@@ -32,22 +32,15 @@ export class HttpErrorFilter implements ExceptionFilter {
     };
 
     const prodErrorResponse: any = {
-      success: false,
-      error: {
-        responseMessage: exception.message || exception.message,
-      },
+      status: 'error',
+      message: exception.message || exception.message,
+      data: null,
     };
     Logger.error(
       `${request.method} ${request.url}`,
       JSON.stringify(devErrorResponse),
       'ExceptionFilter',
     );
-    response
-      .status(status)
-      .json(
-        process.env.NODE_ENV === 'development'
-          ? devErrorResponse
-          : prodErrorResponse,
-      );
+    response.status(status).json(prodErrorResponse);
   }
 }

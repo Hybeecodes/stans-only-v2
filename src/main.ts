@@ -7,6 +7,7 @@ import * as compression from 'compression';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ValidationPipe } from './utils/validator.pipe';
 
 const SERVICE_NAME = 'stans-only-api';
 
@@ -22,6 +23,7 @@ async function bootstrap() {
   app.use(helmet());
   app.enableCors();
   app.use(compression());
+  app.useGlobalPipes(new ValidationPipe());
   const options = new DocumentBuilder()
     .setTitle(`${SERVICE_NAME}`)
     .setDescription('API Documentation')
