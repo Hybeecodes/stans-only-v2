@@ -98,6 +98,7 @@ export class User {
 
   toUserResponse(): UserDto {
     const {
+      id,
       firstName,
       lastName,
       userName,
@@ -108,6 +109,7 @@ export class User {
       isContentCreator,
     } = this;
     return {
+      id,
       firstName,
       lastName,
       userName,
@@ -121,6 +123,7 @@ export class User {
 }
 
 export interface UserDto {
+  id: number;
   firstName: string;
   lastName: string;
   userName: string;
