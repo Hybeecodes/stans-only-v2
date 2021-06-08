@@ -3,6 +3,10 @@ import { User } from '../entities/user.entity';
 
 @EntityRepository(User)
 export class UserRepository extends Repository<User> {
+  async findUserById(userId: number) {
+    return this.findOne({ where: { id: userId, isDeleted: false } });
+  }
+
   async findUserByEmail(email: string) {
     return this.findOne({ where: { email, isDeleted: false } });
   }

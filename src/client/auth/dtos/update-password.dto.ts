@@ -1,13 +1,13 @@
 import { IsDefined, IsNotEmpty, IsString } from 'class-validator';
 
-export class LoginDto {
+export class UpdatePasswordDto {
   @IsDefined()
   @IsNotEmpty()
   @IsString()
-  userName: string;
+  oldPassword: string;
 
   @IsDefined()
   @IsNotEmpty()
   @IsString()
-  password: string;
+  newPassword: string;
 }

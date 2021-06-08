@@ -1,15 +1,13 @@
 import { Module } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
-import { UserRepository } from '../../repositories/user.repository';
+import { UsersController } from './users.controller';
+import { UsersService } from './users.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { UserRepository } from '../../repositories/user.repository';
 import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
-    UsersModule,
     TypeOrmModule.forFeature([UserRepository]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -23,8 +21,8 @@ import { UsersModule } from '../users/users.module';
       }),
     }),
   ],
-  controllers: [AuthController],
-  providers: [AuthService],
-  exports: [AuthService],
+  controllers: [UsersController],
+  providers: [UsersService],
+  exports: [UsersService],
 })
-export class AuthModule {}
+export class UsersModule {}

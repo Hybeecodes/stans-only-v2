@@ -67,6 +67,9 @@ export class User {
   @Column('boolean', { nullable: false, default: false })
   pushNotificationStatus: boolean;
 
+  @Column('decimal', { nullable: false, default: '0.0', precision: 2 })
+  subscriptionFee: number;
+
   @Column('enum', {
     nullable: false,
     default: StatusType.INACTIVE,

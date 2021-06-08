@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dtos/register.dto';
 import { SuccessResponseDto } from '../../shared/success-response.dto';
@@ -8,6 +8,9 @@ import { ForgotPasswordDto } from './dtos/forgot-password.dto';
 import { ResetPasswordDto } from './dtos/reset-password.dto';
 import { ResendVerificationDto } from './dtos/resend-verification.dto';
 import { SocialLoginDto } from './dtos/social-login.dto';
+import { UpdatePasswordDto } from './dtos/update-password.dto';
+import { UserAuthGuard } from '../../utils/guards/user-auth.guard';
+import { LoggedInUser } from '../../utils/decorators/logged-in-user.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -69,5 +72,15 @@ export class AuthController {
   ): Promise<SuccessResponseDto> {
     const response = await this.authService.resetPassword(input);
     return new SuccessResponseDto('Password Reset Successful', response);
+  }
+
+  @UseGuards(UserAuthGuard)
+  @Post('password/change')
+  async changePassword(
+    @Body() input: UpdatePasswordDto,
+    @LoggedInUser('id') userId: number,
+  ): Promise<SuccessResponseDto> {
+    const response = await this.authService.updatePassword(userId, input);
+    return new SuccessResponseDto('Password Updated Successful', response);
   }
 }

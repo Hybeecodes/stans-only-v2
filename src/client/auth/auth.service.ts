@@ -13,9 +13,10 @@ import { LoginDto } from './dtos/login.dto';
 import { ForgotPasswordDto } from './dtos/forgot-password.dto';
 import { nanoid } from 'nanoid';
 import { ResetPasswordDto } from './dtos/reset-password.dto';
-import { hashPassword } from '../../utils/helpers';
+import { comparePassword, hashPassword } from '../../utils/helpers';
 import { ResendVerificationDto } from './dtos/resend-verification.dto';
 import { SocialLoginDto } from './dtos/social-login.dto';
+import { UpdatePasswordDto } from './dtos/update-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -110,8 +111,8 @@ export class AuthService {
   }
 
   async login(input: LoginDto): Promise<{ user: UserDto; token: string }> {
-    const { email, password } = input;
-    const user = await this.userRepository.findUserByEmail(email);
+    const { userName, password } = input;
+    const user = await this.userRepository.findUserByUserName(userName);
     if (!user || !user.isPasswordValid(password)) {
       throw new HttpException(
         ErrorMessages.INVALID_LOGIN,
@@ -126,7 +127,7 @@ export class AuthService {
       throw new HttpException('User Suspended', HttpStatus.BAD_REQUEST);
     }
     try {
-      const token = this.jwtService.sign({ email });
+      const token = this.jwtService.sign({ email: user.email });
       return {
         user: user.toUserResponse(),
         token,
@@ -210,5 +211,28 @@ export class AuthService {
         token,
       };
     } catch (e) {}
+  }
+
+  async updatePassword(userId: number, input: UpdatePasswordDto) {
+    const { newPassword, oldPassword } = input;
+    const user = await this.userRepository.findUserById(userId);
+    if (!user) {
+      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+    }
+    if (!comparePassword(oldPassword, user.password)) {
+      throw new HttpException('Invalid Old Password', HttpStatus.NOT_FOUND);
+    }
+    try {
+      user.password = hashPassword(newPassword);
+      await this.userRepository.save(user);
+    } catch (e) {
+      this.logger.error(
+        `Unable to Update User Password: ${JSON.stringify(e.message)}`,
+      );
+      throw new HttpException(
+        'Unable to Update User Password',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }
