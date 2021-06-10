@@ -8,13 +8,10 @@ import {
 
 export class UpdateUserAccountDetailsDto {
   @IsDefined()
-  @IsNotEmpty()
-  @IsString()
   userName: string;
 
   @IsDefined()
-  @IsNotEmpty()
-  @IsPhoneNumber('NG', { message: 'Invalid Phone NUmber' })
+  // @IsPhoneNumber('NG', { message: 'Invalid Phone NUmber' })
   phoneNumber: string;
 
   @IsDefined()
