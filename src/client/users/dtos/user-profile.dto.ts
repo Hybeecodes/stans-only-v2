@@ -20,6 +20,7 @@ export class UserProfileDto implements Partial<User> {
     this.firstName = user.firstName;
     this.lastName = user.lastName;
     this.userName = user.userName;
+    this.email = user.email;
     this.phoneNumber = user.phoneNumber;
     this.coverPictureUrl = user.coverPictureUrl;
     this.profilePictureUrl = user.profilePictureUrl;
