@@ -16,7 +16,7 @@ const options: TypeOrmModuleOptions = {
   entities: [`${__dirname}/../**/*.entity.{ts,js}`],
   migrations: [`${__dirname}/../migrations/*.{ts,js}`],
   namingStrategy: new TypeOrmNamingStrategy(),
-  synchronize: false,
+  synchronize: true,
   autoLoadEntities: true,
   logging: true,
   cli: {
