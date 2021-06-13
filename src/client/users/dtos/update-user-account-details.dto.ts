@@ -1,10 +1,4 @@
-import {
-  IsDefined,
-  IsNotEmpty,
-  IsNumber,
-  IsPhoneNumber,
-  IsString,
-} from 'class-validator';
+import { IsDefined, IsNotEmpty, IsNumber } from 'class-validator';
 
 export class UpdateUserAccountDetailsDto {
   @IsDefined()

@@ -25,6 +25,10 @@ export class UsersService {
     return this.userRepository.findUserByEmail(email);
   }
 
+  async getUserByUsername(username: string) {
+    return this.userRepository.findUserByUserName(username);
+  }
+
   async getUserProfile(username: string): Promise<UserProfileDto> {
     const user = await this.userRepository.findUserByUserName(username);
     if (!user) {

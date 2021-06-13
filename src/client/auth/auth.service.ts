@@ -112,7 +112,9 @@ export class AuthService {
 
   async login(input: LoginDto): Promise<{ user: UserDto; token: string }> {
     const { userName, password } = input;
-    const user = await this.userRepository.findUserByUserName(userName);
+    const user = await this.userRepository.findOne({
+      where: { userName },
+    });
     if (!user || !user.isPasswordValid(password)) {
       throw new HttpException(
         ErrorMessages.INVALID_LOGIN,
@@ -121,6 +123,13 @@ export class AuthService {
     }
     if (!user.isConfirmed) {
       throw new HttpException('Email Not Verified', HttpStatus.BAD_REQUEST);
+    }
+
+    if (!user.isDeleted) {
+      throw new HttpException(
+        'Account has been Deactivated. Please contact Support',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     if (user.status === StatusType.INACTIVE) {

@@ -14,11 +14,15 @@ import { LoggedInUser } from '../../utils/decorators/logged-in-user.decorator';
 import { UpdateUserProfileDto } from './dtos/update-user-profile.dto';
 import { UpdateNotificationSettingsDto } from './dtos/update-notification-settings.dto';
 import { UpdateUserAccountDetailsDto } from './dtos/update-user-account-details.dto';
+import { PostsService } from '../posts/posts.service';
 
 @UseGuards(UserAuthGuard)
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly postsService: PostsService,
+  ) {}
 
   @Get('profile/:username')
   async getUserProfile(@Param('username') username: string) {
@@ -80,8 +84,19 @@ export class UsersController {
   }
 
   @Post('deactivate')
-  async deactivateAccount(@LoggedInUser('id') userId: number) {
+  async deactivateAccount(
+    @LoggedInUser('id') userId: number,
+  ): Promise<SuccessResponseDto> {
     const response = await this.usersService.deleteUser(userId);
     return new SuccessResponseDto('Account Deactivated Successful', response);
+  }
+
+  ///////////////// User Posts /////////////////
+  @Get(':username/posts')
+  async getPostsByUser(
+    @Param('username') username: string,
+  ): Promise<SuccessResponseDto> {
+    const response = await this.postsService.findPostsByUsername(username);
+    return new SuccessResponseDto('User Posts Successful', response);
   }
 }
