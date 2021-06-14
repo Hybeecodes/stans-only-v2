@@ -125,7 +125,7 @@ export class AuthService {
       throw new HttpException('Email Not Verified', HttpStatus.BAD_REQUEST);
     }
 
-    if (!user.isDeleted) {
+    if (user.isDeleted) {
       throw new HttpException(
         'Account has been Deactivated. Please contact Support',
         HttpStatus.BAD_REQUEST,
