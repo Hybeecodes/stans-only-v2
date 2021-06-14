@@ -29,9 +29,10 @@ export class PostsController {
     return new SuccessResponseDto('Post Created Successfully', response);
   }
 
-  @Get()
-  findAll() {
-    return this.postsService.findAll();
+  @Get('timeline')
+  async getUsersTimeline(@LoggedInUser('id') userId: number) {
+    const response = await this.postsService.getUserTimeline(userId);
+    return new SuccessResponseDto('Post Fetched Successfully', response);
   }
 
   @Get(':id')

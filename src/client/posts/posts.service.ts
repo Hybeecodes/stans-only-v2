@@ -72,6 +72,22 @@ export class PostsService {
     }
   }
 
+  async getUserTimeline(userId: number) {
+    // get list of IDs of user that this user is subscribed to
+    const posts = await this.postRepository
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.media', 'media')
+      .leftJoinAndSelect('post.author', 'author')
+      // .where(`post.user_id IN ()`);
+      .limit(10)
+      .offset(0)
+      .getMany();
+
+    return posts.map((p) => {
+      return new PostDto(p);
+    });
+  }
+
   update(id: number, updatePostDto: UpdatePostDto) {
     return `This action updates a #${id} post`;
   }
