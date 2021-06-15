@@ -14,6 +14,7 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { UserAuthGuard } from '../../utils/guards/user-auth.guard';
 import { LoggedInUser } from '../../utils/decorators/logged-in-user.decorator';
 import { SuccessResponseDto } from '../../shared/success-response.dto';
+import { NewCommentDto } from './dto/new-comment.dto';
 
 @UseGuards(UserAuthGuard)
 @Controller('posts')
@@ -49,5 +50,28 @@ export class PostsController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.postsService.remove(+id);
+  }
+
+  @Post(':postId/comments')
+  async addPostComment(
+    @LoggedInUser('id') userId: number,
+    @Body() input: NewCommentDto,
+    @Param('postId') postId: number,
+  ) {
+    const response = await this.postsService.addPostComment(
+      input,
+      postId,
+      userId,
+    );
+    return new SuccessResponseDto('New Comment Added Successfully', response);
+  }
+
+  @Post(':postId/likes')
+  async addPostLike(
+    @LoggedInUser('id') userId: number,
+    @Param('postId') postId: number,
+  ) {
+    const response = await this.postsService.addPostLike(postId, userId);
+    return new SuccessResponseDto('New Like Added Successfully', response);
   }
 }

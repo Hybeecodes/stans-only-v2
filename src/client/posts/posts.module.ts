@@ -7,11 +7,18 @@ import { PostRepository } from '../../repositories/post.repository';
 import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PostMediaRepository } from '../../repositories/post-media.repository';
+import { CommentRepository } from '../../repositories/comment.repository';
+import { LikeRepository } from '../../repositories/like.repository';
 
 @Module({
   imports: [
     forwardRef(() => UsersModule),
-    TypeOrmModule.forFeature([PostRepository, PostMediaRepository]),
+    TypeOrmModule.forFeature([
+      PostRepository,
+      PostMediaRepository,
+      CommentRepository,
+      LikeRepository,
+    ]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
