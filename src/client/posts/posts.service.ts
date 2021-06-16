@@ -61,6 +61,9 @@ export class PostsService {
 
   async findOne(id: number): Promise<PostDetailsDto> {
     const post = await this.postRepository.findPostDetailsById(id);
+    if (!post) {
+      throw new HttpException('Post Not Found', HttpStatus.NOT_FOUND);
+    }
     return new PostDetailsDto(post);
   }
 
@@ -91,6 +94,7 @@ export class PostsService {
       // .where(`post.user_id IN ()`);
       .limit(10)
       .offset(0)
+      .orderBy('post.createdAt', 'DESC')
       .getMany();
 
     return posts.map((p) => {
@@ -104,6 +108,9 @@ export class PostsService {
     authorId: number,
   ): Promise<void> {
     const post = await this.postRepository.findPostById(postId);
+    if (!post) {
+      throw new HttpException('Post Not Found', HttpStatus.NOT_FOUND);
+    }
     const author = await this.usersService.findUserById(authorId);
     try {
       const { message } = input;
@@ -127,6 +134,9 @@ export class PostsService {
 
   async addPostLike(postId: number, authorId: number): Promise<void> {
     const post = await this.postRepository.findPostById(postId);
+    if (!post) {
+      throw new HttpException('Post Not Found', HttpStatus.NOT_FOUND);
+    }
     const author = await this.usersService.findUserById(authorId);
     try {
       const newLike = this.likeRepository.create({
@@ -163,6 +173,9 @@ export class PostsService {
     queryData: BaseQueryDto,
   ): Promise<CommentDto[]> {
     const post = await this.postRepository.findPostById(postId);
+    if (!post) {
+      throw new HttpException('Post Not Found', HttpStatus.NOT_FOUND);
+    }
     try {
       const { offset, limit } = queryData;
       const postComments = await this.commentRepository.find({
@@ -175,7 +188,7 @@ export class PostsService {
         return new CommentDto(comment);
       });
     } catch (e) {
-      this.logger.error(`getPostComments: ${e.message}`);
+      this.logger.error(`getPostComments Failed: ${e.message}`);
       throw new HttpException(
         'Unable to Fetch Post Comments',
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -188,6 +201,9 @@ export class PostsService {
     queryData: BaseQueryDto,
   ): Promise<LikeDto[]> {
     const post = await this.postRepository.findPostById(postId);
+    if (!post) {
+      throw new HttpException('Post Not Found', HttpStatus.NOT_FOUND);
+    }
     try {
       const { offset, limit } = queryData;
       const likeComments = await this.likeRepository.find({
@@ -200,7 +216,7 @@ export class PostsService {
         return new LikeDto(like);
       });
     } catch (e) {
-      this.logger.error(`getPostLikes: ${e.message}`);
+      this.logger.error(`getPostLikes Failed: ${e.message}`);
       throw new HttpException(
         'Unable to Fetch Post Likes',
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -220,11 +236,58 @@ export class PostsService {
     }
   }
 
-  update(id: number, updatePostDto: UpdatePostDto) {
-    return `This action updates a #${id} post`;
+  async update(postId: number, updatePostDto: UpdatePostDto) {
+    const post = await this.postRepository.findPostById(postId);
+    if (!post) {
+      throw new HttpException('Post Not Found', HttpStatus.NOT_FOUND);
+    }
+    try {
+      const { media, caption } = updatePostDto;
+      post.caption = caption;
+      await this.postRepository.save(post);
+      const postMedia = await this.postMediaRepository.find({
+        where: { post },
+        select: ['url'],
+      });
+      const postMediaUrl = postMedia.map((pm) => {
+        return pm.url;
+      });
+      for (const url of media) {
+        // add new ones
+        if (!postMediaUrl.includes(url)) {
+          // insert if it does not exist
+          const postMedia = this.postMediaRepository.create({ post, url });
+          await this.postMediaRepository.save(postMedia);
+        }
+      }
+      for (const url of postMediaUrl) {
+        if (!media.includes(url)) {
+          await this.postMediaRepository.delete({ url });
+        }
+      }
+    } catch (e) {
+      this.logger.error(`Update Post Failed: ${e.message}`);
+      throw new HttpException(
+        'Unable to Update Post',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} post`;
+  async remove(postId: number): Promise<void> {
+    const post = await this.postRepository.findPostById(postId);
+    if (!post) {
+      throw new HttpException('Post Not Found', HttpStatus.NOT_FOUND);
+    }
+    try {
+      post.isDeleted = true;
+      await this.postRepository.save(post);
+    } catch (e) {
+      this.logger.error(`Delete Post Failed: ${e.message}`);
+      throw new HttpException(
+        'Unable to Delete Post',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

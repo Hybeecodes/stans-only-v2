@@ -44,16 +44,6 @@ export class PostsController {
     return new SuccessResponseDto('Successfully', response);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
-    return this.postsService.update(+id, updatePostDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.postsService.remove(+id);
-  }
-
   @Post(':postId/comments')
   async addPostComment(
     @LoggedInUser('id') userId: number,
@@ -93,5 +83,20 @@ export class PostsController {
   ) {
     const response = await this.postsService.getPostLikes(postId, queryData);
     return new SuccessResponseDto('Successful', response);
+  }
+
+  @Patch(':postId')
+  async updatePost(
+    @Param('postId') postId: number,
+    @Body() input: UpdatePostDto,
+  ) {
+    const response = await this.postsService.update(postId, input);
+    return new SuccessResponseDto('Post Updated Successfully', response);
+  }
+
+  @Delete(':postId')
+  async deletePost(@Param('postId') postId: number) {
+    const response = await this.postsService.remove(postId);
+    return new SuccessResponseDto('Post removed Successfully', response);
   }
 }
