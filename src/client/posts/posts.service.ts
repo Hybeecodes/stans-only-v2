@@ -12,6 +12,9 @@ import { NewCommentDto } from './dto/new-comment.dto';
 import { CommentRepository } from '../../repositories/comment.repository';
 import { Events } from '../../events/client/events.enum';
 import { LikeRepository } from '../../repositories/like.repository';
+import { CommentDto } from './dto/comment.dto';
+import { LikeDto } from './dto/like.dto';
+import { BaseQueryDto } from '../../shared/dtos/base-query.dto';
 
 @Injectable()
 export class PostsService {
@@ -151,6 +154,56 @@ export class PostsService {
     } catch (e) {
       this.logger.error(
         `incrementPostComments operation Failed: ${JSON.stringify(e.message)}`,
+      );
+    }
+  }
+
+  async getPostComments(
+    postId: number,
+    queryData: BaseQueryDto,
+  ): Promise<CommentDto[]> {
+    const post = await this.postRepository.findPostById(postId);
+    try {
+      const { offset, limit } = queryData;
+      const postComments = await this.commentRepository.find({
+        where: { post },
+        relations: ['author'],
+        skip: offset || 0,
+        take: limit || 10,
+      });
+      return postComments.map((comment) => {
+        return new CommentDto(comment);
+      });
+    } catch (e) {
+      this.logger.error(`getPostComments: ${e.message}`);
+      throw new HttpException(
+        'Unable to Fetch Post Comments',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async getPostLikes(
+    postId: number,
+    queryData: BaseQueryDto,
+  ): Promise<LikeDto[]> {
+    const post = await this.postRepository.findPostById(postId);
+    try {
+      const { offset, limit } = queryData;
+      const likeComments = await this.likeRepository.find({
+        where: { post },
+        relations: ['author'],
+        skip: offset || 0,
+        take: limit || 10,
+      });
+      return likeComments.map((like) => {
+        return new LikeDto(like);
+      });
+    } catch (e) {
+      this.logger.error(`getPostLikes: ${e.message}`);
+      throw new HttpException(
+        'Unable to Fetch Post Likes',
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

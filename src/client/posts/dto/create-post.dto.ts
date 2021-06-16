@@ -2,6 +2,7 @@ import {
   IsArray,
   IsDefined,
   IsNotEmpty,
+  IsOptional,
   IsString,
   IsUrl,
 } from 'class-validator';
@@ -12,7 +13,7 @@ export class CreatePostDto {
   @IsString()
   caption: string;
 
-  @IsDefined()
+  @IsOptional()
   @IsNotEmpty()
   @IsArray()
   @IsUrl({}, { each: true })

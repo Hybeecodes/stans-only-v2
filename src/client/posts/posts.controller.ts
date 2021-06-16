@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -15,6 +16,7 @@ import { UserAuthGuard } from '../../utils/guards/user-auth.guard';
 import { LoggedInUser } from '../../utils/decorators/logged-in-user.decorator';
 import { SuccessResponseDto } from '../../shared/success-response.dto';
 import { NewCommentDto } from './dto/new-comment.dto';
+import { BaseQueryDto } from '../../shared/dtos/base-query.dto';
 
 @UseGuards(UserAuthGuard)
 @Controller('posts')
@@ -73,5 +75,23 @@ export class PostsController {
   ) {
     const response = await this.postsService.addPostLike(postId, userId);
     return new SuccessResponseDto('New Like Added Successfully', response);
+  }
+
+  @Get(':postId/comments')
+  async getPostComment(
+    @Param('postId') postId: number,
+    @Query() queryData: BaseQueryDto,
+  ) {
+    const response = await this.postsService.getPostComments(postId, queryData);
+    return new SuccessResponseDto('Successful', response);
+  }
+
+  @Get(':postId/likes')
+  async getPostLike(
+    @Param('postId') postId: number,
+    @Query() queryData: BaseQueryDto,
+  ) {
+    const response = await this.postsService.getPostLikes(postId, queryData);
+    return new SuccessResponseDto('Successful', response);
   }
 }
