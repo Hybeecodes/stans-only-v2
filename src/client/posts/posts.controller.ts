@@ -87,15 +87,21 @@ export class PostsController {
 
   @Patch(':postId')
   async updatePost(
+    @LoggedInUser('id') userId: number,
     @Param('postId') postId: number,
     @Body() input: UpdatePostDto,
   ) {
+    await this.postsService.ensureUserOwnsPost(userId, postId);
     const response = await this.postsService.update(postId, input);
     return new SuccessResponseDto('Post Updated Successfully', response);
   }
 
   @Delete(':postId')
-  async deletePost(@Param('postId') postId: number) {
+  async deletePost(
+    @Param('postId') postId: number,
+    @LoggedInUser('id') userId: number,
+  ) {
+    await this.postsService.ensureUserOwnsPost(userId, postId);
     const response = await this.postsService.remove(postId);
     return new SuccessResponseDto('Post removed Successfully', response);
   }

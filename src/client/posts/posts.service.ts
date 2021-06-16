@@ -290,4 +290,19 @@ export class PostsService {
       );
     }
   }
+
+  async ensureUserOwnsPost(userId: number, postId: number) {
+    const exist = await this.postRepository
+      .createQueryBuilder('post')
+      .where(`id = ${postId}`)
+      .andWhere(`author_id = ${userId}`)
+      .andWhere(`is_deleted = false`)
+      .getOne();
+    if (!exist) {
+      throw new HttpException(
+        'User does not have access to Post',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+  }
 }
