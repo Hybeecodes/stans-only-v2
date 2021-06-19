@@ -5,6 +5,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -15,6 +16,7 @@ import { UpdateUserProfileDto } from './dtos/update-user-profile.dto';
 import { UpdateNotificationSettingsDto } from './dtos/update-notification-settings.dto';
 import { UpdateUserAccountDetailsDto } from './dtos/update-user-account-details.dto';
 import { PostsService } from '../posts/posts.service';
+import { BaseQueryDto } from '../../shared/dtos/base-query.dto';
 
 @UseGuards(UserAuthGuard)
 @Controller('users')
@@ -95,8 +97,12 @@ export class UsersController {
   @Get(':username/posts')
   async getPostsByUser(
     @Param('username') username: string,
+    @Query() queryData: BaseQueryDto,
   ): Promise<SuccessResponseDto> {
-    const response = await this.postsService.findPostsByUsername(username);
+    const response = await this.postsService.findPostsByUsername(
+      username,
+      queryData,
+    );
     return new SuccessResponseDto('User Posts Successful', response);
   }
 }
