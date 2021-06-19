@@ -67,16 +67,30 @@ export class PostsService {
     return new PostDetailsDto(post);
   }
 
-  async findPostsByUsername(username: string): Promise<PostDto[]> {
+  async findPostsByUsername(
+    username: string,
+    queryData: BaseQueryDto,
+  ): Promise<{ count: number; posts: PostDto[] }> {
     const user = await this.usersService.getUserByUsername(username);
     if (!user) {
       throw new HttpException('Invalid Username', HttpStatus.BAD_REQUEST);
     }
     try {
-      const userPosts = await this.postRepository.findPostsByAuthor(user);
-      return userPosts.map((p) => {
-        return new PostDto(p);
-      });
+      const { offset, limit } = queryData;
+      const { 0: userPosts, 1: count } = await this.postRepository.findAndCount(
+        {
+          where: { author: user },
+          relations: ['comments', 'likes', 'author', 'media'],
+          skip: offset || 0,
+          take: limit || 10,
+        },
+      );
+      return {
+        count,
+        posts: userPosts.map((p) => {
+          return new PostDto(p);
+        }),
+      };
     } catch (e) {
       throw new HttpException(
         'Unable to Fetch User Posts',
