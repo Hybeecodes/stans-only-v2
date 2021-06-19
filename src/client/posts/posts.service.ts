@@ -79,10 +79,11 @@ export class PostsService {
       const { offset, limit } = queryData;
       const { 0: userPosts, 1: count } = await this.postRepository.findAndCount(
         {
-          where: { author: user },
+          where: { author: user, isDeleted: false },
           relations: ['comments', 'likes', 'author', 'media'],
           skip: offset || 0,
           take: limit || 10,
+          order: { createdAt: 'DESC' },
         },
       );
       return {
