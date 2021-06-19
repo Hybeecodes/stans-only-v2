@@ -85,21 +85,32 @@ export class PostsService {
     }
   }
 
-  async getUserTimeline(userId: number) {
+  async getUserTimeline(userId: number, queryData: BaseQueryDto) {
     // get list of IDs of user that this user is subscribed to
-    const posts = await this.postRepository
-      .createQueryBuilder('post')
-      .leftJoinAndSelect('post.media', 'media')
-      .leftJoinAndSelect('post.author', 'author')
-      // .where(`post.user_id IN ()`);
-      .limit(10)
-      .offset(0)
-      .orderBy('post.createdAt', 'DESC')
-      .getMany();
-
-    return posts.map((p) => {
-      return new PostDto(p);
-    });
+    try {
+      const { offset, limit } = queryData;
+      const { 0: posts, 1: count } = await this.postRepository
+        .createQueryBuilder('post')
+        .leftJoinAndSelect('post.media', 'media')
+        .leftJoinAndSelect('post.author', 'author')
+        // .where(`post.user_id IN ()`);
+        .limit(limit || 10)
+        .offset(offset || 0)
+        .orderBy('post.createdAt', 'DESC')
+        .getManyAndCount();
+      return {
+        count,
+        posts: posts.map((p) => {
+          return new PostDto(p);
+        }),
+      };
+    } catch (e) {
+      this.logger.error(`getUserTimeline Failed: ${e.message}`);
+      throw new HttpException(
+        'Unable to Fetch User Timeline',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async addPostComment(
@@ -132,6 +143,23 @@ export class PostsService {
     }
   }
 
+  async unLikePost(postId: number, authorId: number): Promise<void> {
+    const post = await this.postRepository.findPostById(postId);
+    if (!post) {
+      throw new HttpException('Post Not Found', HttpStatus.NOT_FOUND);
+    }
+    const author = await this.usersService.findUserById(authorId);
+    try {
+      await this.likeRepository.delete({ post, author });
+    } catch (e) {
+      this.logger.error(`Unable to Unlike Post: ${JSON.stringify(e.message)}`);
+      throw new HttpException(
+        'Unable to Unlike Post',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   async addPostLike(postId: number, authorId: number): Promise<void> {
     const post = await this.postRepository.findPostById(postId);
     if (!post) {
@@ -146,11 +174,9 @@ export class PostsService {
       await this.likeRepository.save(newLike);
       this.eventEmitter.emit(Events.ON_NEW_LIKE, postId);
     } catch (e) {
-      this.logger.error(
-        `Unable to Add new Comment: ${JSON.stringify(e.message)}`,
-      );
+      this.logger.error(`Unable to Like Post: ${JSON.stringify(e.message)}`);
       throw new HttpException(
-        'Unable to Add new Comment',
+        'Unable to Like Post',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

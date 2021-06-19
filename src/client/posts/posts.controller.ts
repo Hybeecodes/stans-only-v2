@@ -33,8 +33,11 @@ export class PostsController {
   }
 
   @Get('timeline')
-  async getUsersTimeline(@LoggedInUser('id') userId: number) {
-    const response = await this.postsService.getUserTimeline(userId);
+  async getUsersTimeline(
+    @LoggedInUser('id') userId: number,
+    @Query() queryData: BaseQueryDto,
+  ) {
+    const response = await this.postsService.getUserTimeline(userId, queryData);
     return new SuccessResponseDto('Post Fetched Successfully', response);
   }
 
@@ -58,8 +61,17 @@ export class PostsController {
     return new SuccessResponseDto('New Comment Added Successfully', response);
   }
 
-  @Post(':postId/likes')
+  @Delete(':postId/likes')
   async addPostLike(
+    @LoggedInUser('id') userId: number,
+    @Param('postId') postId: number,
+  ) {
+    const response = await this.postsService.unLikePost(postId, userId);
+    return new SuccessResponseDto('Post Unliked Successfully', response);
+  }
+
+  @Post(':postId/likes')
+  async RemovePostLike(
     @LoggedInUser('id') userId: number,
     @Param('postId') postId: number,
   ) {
