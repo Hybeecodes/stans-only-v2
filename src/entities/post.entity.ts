@@ -10,7 +10,6 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 import { PostMedia } from './post-media.entity';
-import { Comment } from './comment.entity';
 import { Like } from './like.entity';
 
 @Entity()
@@ -32,8 +31,14 @@ export class Post {
   @Column('int', { default: null, nullable: false })
   commentsCount: number;
 
-  @OneToMany(() => Comment, (comment) => comment.post)
-  comments: Comment[];
+  @ManyToOne(() => Post, (parent) => parent.comments, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  parent: Post;
+
+  @OneToMany(() => Post, (comment) => comment.parent)
+  comments: Post[];
 
   @Column('int', { default: null, nullable: false })
   likesCount: number;

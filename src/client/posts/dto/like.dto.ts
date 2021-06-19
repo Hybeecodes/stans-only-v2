@@ -8,6 +8,7 @@ export class LikeDto {
     firstName: string;
     lastName: string;
     userName: string;
+    profilePictureUrl: string;
   };
 
   constructor(like: Like) {
@@ -17,6 +18,7 @@ export class LikeDto {
       firstName: like.author.firstName,
       lastName: like.author.lastName,
       userName: like.author.userName,
+      profilePictureUrl: like.author.profilePictureUrl,
     };
   }
 }

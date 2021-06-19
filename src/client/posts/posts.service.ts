@@ -93,6 +93,7 @@ export class PostsService {
         .createQueryBuilder('post')
         .leftJoinAndSelect('post.media', 'media')
         .leftJoinAndSelect('post.author', 'author')
+        .where('post.isDeleted = false')
         // .where(`post.user_id IN ()`);
         .limit(limit || 10)
         .offset(offset || 0)
@@ -125,12 +126,12 @@ export class PostsService {
     const author = await this.usersService.findUserById(authorId);
     try {
       const { message } = input;
-      const newComment = this.commentRepository.create({
-        post,
+      const newComment = this.postRepository.create({
+        parent: post,
         author,
-        message,
+        caption: message,
       });
-      await this.commentRepository.save(newComment);
+      await this.postRepository.save(newComment);
       this.eventEmitter.emit(Events.ON_NEW_COMMENT, postId);
     } catch (e) {
       this.logger.error(
@@ -151,6 +152,7 @@ export class PostsService {
     const author = await this.usersService.findUserById(authorId);
     try {
       await this.likeRepository.delete({ post, author });
+      this.eventEmitter.emit(Events.ON_UNLIKE, postId);
     } catch (e) {
       this.logger.error(`Unable to Unlike Post: ${JSON.stringify(e.message)}`);
       throw new HttpException(
@@ -197,22 +199,26 @@ export class PostsService {
   async getPostComments(
     postId: number,
     queryData: BaseQueryDto,
-  ): Promise<CommentDto[]> {
+  ): Promise<{ comments: CommentDto[]; count: number }> {
     const post = await this.postRepository.findPostById(postId);
     if (!post) {
       throw new HttpException('Post Not Found', HttpStatus.NOT_FOUND);
     }
     try {
       const { offset, limit } = queryData;
-      const postComments = await this.commentRepository.find({
-        where: { post },
-        relations: ['author'],
-        skip: offset || 0,
-        take: limit || 10,
-      });
-      return postComments.map((comment) => {
-        return new CommentDto(comment);
-      });
+      const { 0: postComments, 1: count } =
+        await this.postRepository.findAndCount({
+          where: { parent: post },
+          relations: ['author'],
+          skip: offset || 0,
+          take: limit || 10,
+        });
+      return {
+        count,
+        comments: postComments.map((comment) => {
+          return new CommentDto(comment);
+        }),
+      };
     } catch (e) {
       this.logger.error(`getPostComments Failed: ${e.message}`);
       throw new HttpException(
@@ -225,22 +231,26 @@ export class PostsService {
   async getPostLikes(
     postId: number,
     queryData: BaseQueryDto,
-  ): Promise<LikeDto[]> {
+  ): Promise<{ count: number; likes: LikeDto[] }> {
     const post = await this.postRepository.findPostById(postId);
     if (!post) {
       throw new HttpException('Post Not Found', HttpStatus.NOT_FOUND);
     }
     try {
       const { offset, limit } = queryData;
-      const likeComments = await this.likeRepository.find({
-        where: { post },
-        relations: ['author'],
-        skip: offset || 0,
-        take: limit || 10,
-      });
-      return likeComments.map((like) => {
-        return new LikeDto(like);
-      });
+      const { 0: likeComments, 1: count } =
+        await this.likeRepository.findAndCount({
+          where: { post },
+          relations: ['author'],
+          skip: offset || 0,
+          take: limit || 10,
+        });
+      return {
+        count,
+        likes: likeComments.map((like) => {
+          return new LikeDto(like);
+        }),
+      };
     } catch (e) {
       this.logger.error(`getPostLikes Failed: ${e.message}`);
       throw new HttpException(
@@ -258,6 +268,18 @@ export class PostsService {
     } catch (e) {
       this.logger.error(
         `incrementPostLikes operation Failed: ${JSON.stringify(e.message)}`,
+      );
+    }
+  }
+
+  async decrementPostLikes(postId: number): Promise<void> {
+    try {
+      await this.postRepository.query(
+        `UPDATE posts SET likes_count = likes_count-1 WHERE id = ${postId}`,
+      );
+    } catch (e) {
+      this.logger.error(
+        `decrementPostLikes operation Failed: ${JSON.stringify(e.message)}`,
       );
     }
   }

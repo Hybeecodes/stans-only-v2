@@ -28,4 +28,13 @@ export class PostEventHandlerService {
       this.logger.error(`onNewLikeHandler: ${JSON.stringify(e)}`);
     }
   }
+
+  @OnEvent(Events.ON_UNLIKE, { async: true })
+  async onUnLikeHandler(postId: number): Promise<void> {
+    try {
+      await this.postsService.decrementPostLikes(postId);
+    } catch (e) {
+      this.logger.error(`onNewLikeHandler: ${JSON.stringify(e)}`);
+    }
+  }
 }

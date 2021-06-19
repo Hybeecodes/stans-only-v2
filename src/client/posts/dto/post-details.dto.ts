@@ -1,5 +1,4 @@
 import { Post } from '../../../entities/post.entity';
-import { Comment } from '../../../entities/comment.entity';
 import { Like } from '../../../entities/like.entity';
 
 export class PostDetailsDto {
@@ -9,7 +8,7 @@ export class PostDetailsDto {
   public likesCount: number;
   public createdAt: Date;
   public media: string[];
-  public comments: Comment[];
+  public comments: Post[];
   public likes: Like[];
   public author: {
     id: number;

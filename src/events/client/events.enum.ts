@@ -4,4 +4,5 @@ export enum Events {
   CREATE_POST_MEDIA = 'createPostMedia',
   ON_NEW_COMMENT = 'comment.new',
   ON_NEW_LIKE = 'like.new',
+  ON_UNLIKE = 'like.remove',
 }
