@@ -15,6 +15,7 @@ export class PostDetailsDto {
     firstName: string;
     lastName: string;
     userName: string;
+    profilePictureUrl: string;
   };
 
   constructor(post: Post) {
@@ -32,6 +33,7 @@ export class PostDetailsDto {
       firstName: post.author.firstName,
       lastName: post.author.lastName,
       userName: post.author.userName,
+      profilePictureUrl: post.author.profilePictureUrl,
     };
     this.createdAt = post.createdAt;
   }
