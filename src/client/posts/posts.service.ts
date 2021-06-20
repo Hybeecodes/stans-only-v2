@@ -12,9 +12,9 @@ import { NewCommentDto } from './dto/new-comment.dto';
 import { CommentRepository } from '../../repositories/comment.repository';
 import { Events } from '../../events/client/events.enum';
 import { LikeRepository } from '../../repositories/like.repository';
-import { CommentDto } from './dto/comment.dto';
 import { LikeDto } from './dto/like.dto';
 import { BaseQueryDto } from '../../shared/dtos/base-query.dto';
+import { Post } from '../../entities/post.entity';
 
 @Injectable()
 export class PostsService {
@@ -88,9 +88,7 @@ export class PostsService {
       );
       return {
         count,
-        posts: userPosts.map((p) => {
-          return new PostDto(p);
-        }),
+        posts: await this.toPostResponse(userPosts, user.id),
       };
     } catch (e) {
       throw new HttpException(
@@ -98,6 +96,25 @@ export class PostsService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  async toPostResponse(posts: Post[], userId: number) {
+    const postIds: number[] = posts.map((p) => {
+      return p.id;
+    });
+    const likedPosts: { post_id: number }[] = await this.likeRepository.query(
+      `SELECT post_id FROM likes WHERE post_id IN (${postIds.join(
+        ',',
+      )}) AND author_id = ${userId}`,
+    );
+    const likedPostIds = likedPosts.map((l) => {
+      return l.post_id;
+    });
+    return posts.map((p) => {
+      const isLiked = likedPostIds.includes(p.id);
+      const po = new PostDto(p);
+      return { ...po, isLiked };
+    });
   }
 
   async getUserTimeline(userId: number, queryData: BaseQueryDto) {
@@ -116,9 +133,7 @@ export class PostsService {
         .getManyAndCount();
       return {
         count,
-        posts: posts.map((p) => {
-          return new PostDto(p);
-        }),
+        posts: await this.toPostResponse(posts, userId),
       };
     } catch (e) {
       this.logger.error(`getUserTimeline Failed: ${e.message}`);
@@ -214,7 +229,24 @@ export class PostsService {
   async getPostComments(
     postId: number,
     queryData: BaseQueryDto,
-  ): Promise<{ comments: CommentDto[]; count: number }> {
+  ): Promise<{
+    comments: {
+      likesCount: number;
+      createdAt: Date;
+      commentsCount: number;
+      author: {
+        id: number;
+        firstName: string;
+        lastName: string;
+        userName: string;
+      };
+      isLiked: boolean;
+      caption: string;
+      id: number;
+      media: string[];
+    }[];
+    count: number;
+  }> {
     const post = await this.postRepository.findPostById(postId);
     if (!post) {
       throw new HttpException('Post Not Found', HttpStatus.NOT_FOUND);
@@ -224,15 +256,14 @@ export class PostsService {
       const { 0: postComments, 1: count } =
         await this.postRepository.findAndCount({
           where: { parent: post },
-          relations: ['author'],
+          relations: ['author', 'likes'],
           skip: offset || 0,
           take: limit || 10,
+          order: { createdAt: 'DESC' },
         });
       return {
         count,
-        comments: postComments.map((comment) => {
-          return new CommentDto(comment);
-        }),
+        comments: await this.toPostResponse(postComments, post.author.id),
       };
     } catch (e) {
       this.logger.error(`getPostComments Failed: ${e.message}`);
