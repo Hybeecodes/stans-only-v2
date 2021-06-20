@@ -42,8 +42,8 @@ export class PostsController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    const response = await this.postsService.findOne(+id);
+  async findOne(@Param('id') id: string, @LoggedInUser('id') userId: number) {
+    const response = await this.postsService.findOne(+id, userId);
     return new SuccessResponseDto('Successfully', response);
   }
 

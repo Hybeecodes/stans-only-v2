@@ -15,6 +15,7 @@ import { LikeRepository } from '../../repositories/like.repository';
 import { LikeDto } from './dto/like.dto';
 import { BaseQueryDto } from '../../shared/dtos/base-query.dto';
 import { Post } from '../../entities/post.entity';
+import { Like } from '../../entities/like.entity';
 
 @Injectable()
 export class PostsService {
@@ -59,12 +60,38 @@ export class PostsService {
     return `This action returns all posts`;
   }
 
-  async findOne(id: number): Promise<PostDetailsDto> {
+  async findOne(
+    id: number,
+    userId: number,
+  ): Promise<{
+    likesCount: number;
+    createdAt: Date;
+    comments: Post[];
+    commentsCount: number;
+    author: {
+      id: number;
+      firstName: string;
+      lastName: string;
+      userName: string;
+      profilePictureUrl: string;
+    };
+    isLiked: boolean;
+    caption: string;
+    id: number;
+    media: string[];
+    likes: Like[];
+  }> {
     const post = await this.postRepository.findPostDetailsById(id);
     if (!post) {
       throw new HttpException('Post Not Found', HttpStatus.NOT_FOUND);
     }
-    return new PostDetailsDto(post);
+    const isLiked = await this.likeRepository
+      .createQueryBuilder()
+      .where(`post_id = ${post.id}`)
+      .andWhere(`author_id = ${userId}`)
+      .getOne();
+    const postResponse = new PostDetailsDto(post);
+    return { ...postResponse, isLiked: !!isLiked };
   }
 
   async findPostsByUsername(
