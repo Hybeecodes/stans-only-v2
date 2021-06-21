@@ -8,6 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Post } from './post.entity';
+import { MediaTypes } from '../client/enums/image-types.enum';
 
 @Entity('post_media')
 export class PostMedia {
@@ -23,6 +24,9 @@ export class PostMedia {
 
   @Column('varchar', { nullable: false })
   url: string;
+
+  @Column('enum', { nullable: true, enum: MediaTypes })
+  mediaType: string;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -42,8 +42,12 @@ export class PostsService {
         author: user,
         caption,
       });
-      for (const url of media) {
-        const postMedia = this.postMediaRepository.create({ post, url });
+      for (const { url, mediaType } of media) {
+        const postMedia = this.postMediaRepository.create({
+          post,
+          url,
+          mediaType,
+        });
         await this.postMediaRepository.save(postMedia);
       }
       return Promise.resolve(true);
@@ -253,27 +257,7 @@ export class PostsService {
     }
   }
 
-  async getPostComments(
-    postId: number,
-    queryData: BaseQueryDto,
-  ): Promise<{
-    comments: {
-      likesCount: number;
-      createdAt: Date;
-      commentsCount: number;
-      author: {
-        id: number;
-        firstName: string;
-        lastName: string;
-        userName: string;
-      };
-      isLiked: boolean;
-      caption: string;
-      id: number;
-      media: string[];
-    }[];
-    count: number;
-  }> {
+  async getPostComments(postId: number, queryData: BaseQueryDto) {
     const post = await this.postRepository.findPostById(postId);
     if (!post) {
       throw new HttpException('Post Not Found', HttpStatus.NOT_FOUND);
@@ -373,17 +357,25 @@ export class PostsService {
       const postMediaUrl = postMedia.map((pm) => {
         return pm.url;
       });
-      for (const url of media) {
+
+      const mediaUrls = media.map((pm) => {
+        return pm.url;
+      });
+      for (const { url, mediaType } of media) {
         // add new ones
         if (!postMediaUrl.includes(url)) {
           // insert if it does not exist
-          const postMedia = this.postMediaRepository.create({ post, url });
+          const postMedia = this.postMediaRepository.create({
+            post,
+            url,
+            mediaType,
+          });
           await this.postMediaRepository.save(postMedia);
         }
       }
-      for (const url of postMediaUrl) {
-        if (!media.includes(url)) {
-          await this.postMediaRepository.delete({ url });
+      for (const media of postMediaUrl) {
+        if (!mediaUrls.includes(media)) {
+          await this.postMediaRepository.delete({ url: media });
         }
       }
     } catch (e) {

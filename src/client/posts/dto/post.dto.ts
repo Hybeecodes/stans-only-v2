@@ -6,7 +6,7 @@ export class PostDto {
   public commentsCount: number;
   public likesCount: number;
   public createdAt: Date;
-  public media: string[];
+  public media: { url: string; mediaType: string }[];
   public author: {
     id: number;
     firstName: string;
@@ -20,7 +20,10 @@ export class PostDto {
     this.caption = post.caption;
     this.commentsCount = post.commentsCount;
     this.media = post.media.map((m) => {
-      return m.url;
+      return {
+        url: m.url,
+        mediaType: m.mediaType,
+      };
     });
     this.likesCount = post.likesCount;
     this.author = {
