@@ -9,10 +9,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PostMediaRepository } from '../../repositories/post-media.repository';
 import { CommentRepository } from '../../repositories/comment.repository';
 import { LikeRepository } from '../../repositories/like.repository';
+import { SubscriptionModule } from '../subscription/subscription.module';
 
 @Module({
   imports: [
     forwardRef(() => UsersModule),
+    SubscriptionModule,
     TypeOrmModule.forFeature([
       PostRepository,
       PostMediaRepository,

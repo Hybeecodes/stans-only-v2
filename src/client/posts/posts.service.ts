@@ -16,6 +16,7 @@ import { LikeDto } from './dto/like.dto';
 import { BaseQueryDto } from '../../shared/dtos/base-query.dto';
 import { Post } from '../../entities/post.entity';
 import { Like } from '../../entities/like.entity';
+import { SubscriptionService } from '../subscription/subscription.service';
 
 @Injectable()
 export class PostsService {
@@ -31,6 +32,7 @@ export class PostsService {
     private readonly likeRepository: LikeRepository,
     private readonly eventEmitter: EventEmitter2,
     private readonly usersService: UsersService,
+    private readonly subscriptionService: SubscriptionService,
   ) {
     this.logger = new Logger(PostsService.name);
   }
@@ -130,37 +132,46 @@ export class PostsService {
   }
 
   async toPostResponse(posts: Post[], userId: number) {
-    const postIds: number[] = posts.map((p) => {
-      return p.id;
-    });
-    const likedPosts: { post_id: number }[] = await this.likeRepository.query(
-      `SELECT post_id FROM likes WHERE post_id IN (${postIds.join(
-        ',',
-      )}) AND author_id = ${userId}`,
-    );
-    const likedPostIds = likedPosts.map((l) => {
-      return l.post_id;
-    });
-    return posts.map((p) => {
-      const isLiked = likedPostIds.includes(p.id);
-      const po = new PostDto(p);
-      return { ...po, isLiked };
-    });
+    if (posts.length > 0) {
+      const postIds: number[] = posts.map((p) => {
+        return p.id;
+      });
+      const likedPosts: { post_id: number }[] = await this.likeRepository.query(
+        `SELECT post_id FROM likes WHERE post_id IN (${postIds.join(
+          ',',
+        )}) AND author_id = ${userId}`,
+      );
+      const likedPostIds = likedPosts.map((l) => {
+        return l.post_id;
+      });
+      return posts.map((p) => {
+        const isLiked = likedPostIds.includes(p.id);
+        const po = new PostDto(p);
+        return { ...po, isLiked };
+      });
+    } else {
+      return posts.map((p) => {
+        const po = new PostDto(p);
+        return { ...po };
+      });
+    }
   }
 
   async getUserTimeline(userId: number, queryData: BaseQueryDto) {
     // get list of IDs of user that this user is subscribed to
     try {
+      const subscriptions: number[] =
+        await this.subscriptionService.getAllUserSubscriptions(userId);
       const { offset, limit } = queryData;
       const { 0: posts, 1: count } = await this.postRepository
         .createQueryBuilder('post')
         .leftJoinAndSelect('post.media', 'media')
         .leftJoinAndSelect('post.author', 'author')
-        .where('post.isDeleted = false')
-        // .where(`post.user_id IN ()`);
+        .where('post.is_deleted = false')
+        .andWhere(`post.author_id IN (${subscriptions.join(',')})`)
         .limit(limit || 10)
         .offset(offset || 0)
-        .orderBy('post.createdAt', 'DESC')
+        .orderBy('post.created_at', 'DESC')
         .getManyAndCount();
       return {
         count,

@@ -126,6 +126,21 @@ export class SubscriptionService {
     }
   }
 
+  async getAllUserSubscriptions(userId: number) {
+    try {
+      const subscriptions = await this.subscriptionRepository.query(`
+      SELECT subscribee_id FROM subscriptions WHERE subscriber_id = ${userId} AND is_deleted = false
+      `);
+      return subscriptions.map((sub) => {
+        return sub.subscribee_id;
+      });
+    } catch (e) {
+      this.logger.error(
+        `GET USER Subscriptions Failed: ${JSON.stringify(e.message)}`,
+      );
+    }
+  }
+
   async getUserSubscriptions(
     userName: string,
     queryData: BaseQueryDto,
