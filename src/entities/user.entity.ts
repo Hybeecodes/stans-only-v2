@@ -70,6 +70,9 @@ export class User {
   @Column('decimal', { nullable: false, default: '0.0', precision: 2 })
   subscriptionFee: number;
 
+  @Column('int', { nullable: false, default: 0 })
+  subscribersCount: number;
+
   @Column('enum', {
     nullable: false,
     default: StatusType.INACTIVE,

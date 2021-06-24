@@ -3,9 +3,16 @@ import { AuthModule } from './auth/auth.module';
 import { ClientEventHandlerModule } from '../events/client/handlers/client-event-handler.module';
 import { UsersModule } from './users/users.module';
 import { PostsModule } from './posts/posts.module';
+import { SubscriptionModule } from './subscription/subscription.module';
 
 @Module({
-  imports: [AuthModule, ClientEventHandlerModule, UsersModule, PostsModule],
+  imports: [
+    AuthModule,
+    ClientEventHandlerModule,
+    UsersModule,
+    PostsModule,
+    SubscriptionModule,
+  ],
   providers: [],
   exports: [AuthModule],
 })

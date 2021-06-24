@@ -17,6 +17,7 @@ import { UpdateNotificationSettingsDto } from './dtos/update-notification-settin
 import { UpdateUserAccountDetailsDto } from './dtos/update-user-account-details.dto';
 import { PostsService } from '../posts/posts.service';
 import { BaseQueryDto } from '../../shared/dtos/base-query.dto';
+import { SubscriptionService } from '../subscription/subscription.service';
 
 @UseGuards(UserAuthGuard)
 @Controller('users')
@@ -24,6 +25,7 @@ export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly postsService: PostsService,
+    private readonly subscriptionService: SubscriptionService,
   ) {}
 
   @Get('profile/:username')
@@ -104,5 +106,57 @@ export class UsersController {
       queryData,
     );
     return new SuccessResponseDto('User Posts Successful', response);
+  }
+
+  ////////////////////Subscription ///////////////////////
+  @Post(':userName/subscribe')
+  async subscribeToUser(
+    @LoggedInUser('id') subscriberId: number,
+    @Param('userName') userName: string,
+  ): Promise<SuccessResponseDto> {
+    const response = await this.subscriptionService.createSubscription(
+      subscriberId,
+      userName,
+    );
+    return new SuccessResponseDto('Subscription Successful', response);
+  }
+
+  @Post(':userName/unsubscribe')
+  async unsubscribeFromUser(
+    @LoggedInUser('id') subscriberId: number,
+    @Param('userName') userName: string,
+  ): Promise<SuccessResponseDto> {
+    const response = await this.subscriptionService.removeSubscription(
+      subscriberId,
+      userName,
+    );
+    return new SuccessResponseDto(
+      'Subscription Deleted Successfully',
+      response,
+    );
+  }
+
+  @Get(':userName/subscribers')
+  async getSubscribers(
+    @Param('userName') userName: string,
+    @Query() queryData: BaseQueryDto,
+  ): Promise<SuccessResponseDto> {
+    const response = await this.subscriptionService.getUserSubscribers(
+      userName,
+      queryData,
+    );
+    return new SuccessResponseDto('Successful', response);
+  }
+
+  @Get(':userName/subscriptions')
+  async getSubscriptions(
+    @Param('userName') userName: string,
+    @Query() queryData: BaseQueryDto,
+  ): Promise<SuccessResponseDto> {
+    const response = await this.subscriptionService.getUserSubscriptions(
+      userName,
+      queryData,
+    );
+    return new SuccessResponseDto('Successful', response);
   }
 }

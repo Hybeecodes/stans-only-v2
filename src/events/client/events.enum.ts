@@ -5,4 +5,6 @@ export enum Events {
   ON_NEW_COMMENT = 'comment.new',
   ON_NEW_LIKE = 'like.new',
   ON_UNLIKE = 'like.remove',
+  ON_NEW_SUBSCRIPTION = 'subscription.new',
+  ON_REMOVE_SUBSCRIPTION = 'subscription.remove',
 }

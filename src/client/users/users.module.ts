@@ -6,6 +6,7 @@ import { UserRepository } from '../../repositories/user.repository';
 import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PostsModule } from '../posts/posts.module';
+import { SubscriptionModule } from '../subscription/subscription.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { PostsModule } from '../posts/posts.module';
       }),
     }),
     PostsModule,
+    SubscriptionModule,
   ],
   controllers: [UsersController],
   providers: [UsersService],

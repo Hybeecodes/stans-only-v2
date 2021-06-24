@@ -149,4 +149,32 @@ export class UsersService {
       );
     }
   }
+
+  async incrementUserSubscribers(userId: number): Promise<void> {
+    try {
+      await this.userRepository.query(
+        `UPDATE users SET subscribers_count = subscribers_count+1 WHERE id = ${userId}`,
+      );
+    } catch (e) {
+      this.logger.error(
+        `incrementUserSubscribers operation Failed: ${JSON.stringify(
+          e.message,
+        )}`,
+      );
+    }
+  }
+
+  async decrementUserSubscribers(postId: number): Promise<void> {
+    try {
+      await this.userRepository.query(
+        `UPDATE users SET subscribers_count = subscribers_count-1 WHERE id = ${postId}`,
+      );
+    } catch (e) {
+      this.logger.error(
+        `decrementUserSubscribers operation Failed: ${JSON.stringify(
+          e.message,
+        )}`,
+      );
+    }
+  }
 }
