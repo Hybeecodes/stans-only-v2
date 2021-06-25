@@ -168,7 +168,11 @@ export class PostsService {
         .leftJoinAndSelect('post.media', 'media')
         .leftJoinAndSelect('post.author', 'author')
         .where('post.is_deleted = false')
-        .andWhere(`post.author_id IN (${subscriptions.join(',')})`)
+        .andWhere(
+          `post.author_id IN (${
+            subscriptions.length > 0 ? subscriptions.join(',') : 0
+          })`,
+        )
         .limit(limit || 10)
         .offset(offset || 0)
         .orderBy('post.created_at', 'DESC')
