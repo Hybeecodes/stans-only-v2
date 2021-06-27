@@ -4,6 +4,7 @@ import { ClientEventHandlerModule } from '../events/client/handlers/client-event
 import { UsersModule } from './users/users.module';
 import { PostsModule } from './posts/posts.module';
 import { SubscriptionModule } from './subscription/subscription.module';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { SubscriptionModule } from './subscription/subscription.module';
     UsersModule,
     PostsModule,
     SubscriptionModule,
+    SearchModule,
   ],
   providers: [],
   exports: [AuthModule],

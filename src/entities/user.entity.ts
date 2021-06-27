@@ -109,6 +109,7 @@ export class User {
       lastName,
       userName,
       email,
+      bio,
       phoneNumber,
       coverPictureUrl,
       profilePictureUrl,
@@ -120,6 +121,7 @@ export class User {
       lastName,
       userName,
       email,
+      bio,
       phoneNumber,
       coverPictureUrl,
       profilePictureUrl,
@@ -134,6 +136,7 @@ export interface UserDto {
   lastName: string;
   userName: string;
   email: string;
+  bio: string;
   phoneNumber: string;
   coverPictureUrl: string;
   profilePictureUrl: string;

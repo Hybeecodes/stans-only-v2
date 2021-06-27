@@ -19,12 +19,14 @@ export class PostDto {
     this.id = post.id;
     this.caption = post.caption;
     this.commentsCount = post.commentsCount;
-    this.media = post.media.map((m) => {
-      return {
-        url: m.url,
-        mediaType: m.mediaType,
-      };
-    });
+    this.media =
+      post.media &&
+      post.media.map((m) => {
+        return {
+          url: m.url,
+          mediaType: m.mediaType,
+        };
+      });
     this.likesCount = post.likesCount;
     this.author = {
       id: post.author.id,
