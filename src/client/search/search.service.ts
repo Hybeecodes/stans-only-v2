@@ -60,7 +60,6 @@ export class SearchService {
         .limit(limit || 10)
         .offset(offset || 0)
         .getManyAndCount();
-      console.log(posts);
       return {
         count,
         posts: posts.map((post) => {
