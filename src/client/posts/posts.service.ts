@@ -162,6 +162,7 @@ export class PostsService {
     try {
       const subscriptions: number[] =
         await this.subscriptionService.getAllUserSubscriptions(userId);
+      subscriptions.push(userId); // add user Id so we can fetch users posts also
       const { offset, limit } = queryData;
       const { 0: posts, 1: count } = await this.postRepository
         .createQueryBuilder('post')
