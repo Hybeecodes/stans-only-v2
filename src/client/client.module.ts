@@ -9,6 +9,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { UserAuthGuard } from '../utils/guards/user-auth.guard';
 import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { SuggestionsModule } from './suggestions/suggestions.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         },
       }),
     }),
+    SuggestionsModule,
   ],
   providers: [
     {
