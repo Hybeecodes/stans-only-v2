@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dtos/register.dto';
 import { SuccessResponseDto } from '../../shared/success-response.dto';
@@ -9,19 +9,21 @@ import { ResetPasswordDto } from './dtos/reset-password.dto';
 import { ResendVerificationDto } from './dtos/resend-verification.dto';
 import { SocialLoginDto } from './dtos/social-login.dto';
 import { UpdatePasswordDto } from './dtos/update-password.dto';
-import { UserAuthGuard } from '../../utils/guards/user-auth.guard';
 import { LoggedInUser } from '../../utils/decorators/logged-in-user.decorator';
+import { SkipAuth } from '../../utils/meta/skip-auth';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @SkipAuth()
   @Post('register')
   async register(@Body() input: RegisterDto): Promise<SuccessResponseDto> {
     const response = await this.authService.register(input);
     return new SuccessResponseDto('Registration Successful', response);
   }
 
+  @SkipAuth()
   @Post('social')
   async socialLogin(
     @Body() input: SocialLoginDto,
@@ -30,6 +32,7 @@ export class AuthController {
     return new SuccessResponseDto('Login Successful', response);
   }
 
+  @SkipAuth()
   @Post('email/verify')
   async verifyEmail(
     @Body() input: VerifyEmailDto,
@@ -38,6 +41,7 @@ export class AuthController {
     return new SuccessResponseDto('Email Verification Successful', response);
   }
 
+  @SkipAuth()
   @Post('email/verify/resend')
   async resendEmailVerification(
     @Body() input: ResendVerificationDto,
@@ -49,12 +53,14 @@ export class AuthController {
     );
   }
 
+  @SkipAuth()
   @Post('login')
   async login(@Body() input: LoginDto): Promise<SuccessResponseDto> {
     const response = await this.authService.login(input);
     return new SuccessResponseDto('Login Successful', response);
   }
 
+  @SkipAuth()
   @Post('password/forgot')
   async forgotPassword(
     @Body() input: ForgotPasswordDto,
@@ -66,6 +72,7 @@ export class AuthController {
     );
   }
 
+  @SkipAuth()
   @Post('password/reset')
   async resetPassword(
     @Body() input: ResetPasswordDto,
@@ -74,7 +81,6 @@ export class AuthController {
     return new SuccessResponseDto('Password Reset Successful', response);
   }
 
-  @UseGuards(UserAuthGuard)
   @Post('password/change')
   async changePassword(
     @Body() input: UpdatePasswordDto,

@@ -9,14 +9,24 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../../client/users/users.service';
 import { UserDto } from '../../entities/user.entity';
+import { Reflector } from '@nestjs/core';
+import { IS_PUBLIC_KEY } from '../meta/skip-auth';
 
 @Injectable()
 export class UserAuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private readonly usersService: UsersService,
+    private reflector: Reflector,
   ) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+    if (isPublic) {
+      return true;
+    }
     const request = context.switchToHttp().getRequest();
     request.user = await this.validateRequest(request);
     return true;
