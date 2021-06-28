@@ -1,15 +1,5 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Put,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { UserAuthGuard } from '../../utils/guards/user-auth.guard';
 import { SuccessResponseDto } from '../../shared/success-response.dto';
 import { LoggedInUser } from '../../utils/decorators/logged-in-user.decorator';
 import { UpdateUserProfileDto } from './dtos/update-user-profile.dto';
@@ -19,7 +9,6 @@ import { PostsService } from '../posts/posts.service';
 import { BaseQueryDto } from '../../shared/dtos/base-query.dto';
 import { SubscriptionService } from '../subscription/subscription.service';
 
-@UseGuards(UserAuthGuard)
 @Controller('users')
 export class UsersController {
   constructor(

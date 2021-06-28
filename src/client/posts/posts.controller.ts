@@ -6,19 +6,16 @@ import {
   Patch,
   Param,
   Delete,
-  UseGuards,
   Query,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { UserAuthGuard } from '../../utils/guards/user-auth.guard';
 import { LoggedInUser } from '../../utils/decorators/logged-in-user.decorator';
 import { SuccessResponseDto } from '../../shared/success-response.dto';
 import { NewCommentDto } from './dto/new-comment.dto';
 import { BaseQueryDto } from '../../shared/dtos/base-query.dto';
 
-@UseGuards(UserAuthGuard)
 @Controller('posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
