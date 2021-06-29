@@ -80,6 +80,12 @@ export class SubscriptionService {
     const subscribee = await this.usersService.getUserByUsername(
       subscribeeUserName,
     );
+    if (!subscribee) {
+      throw new HttpException(
+        'Invalid username Supplied',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     try {
       const subscription = await this.subscriptionRepository.findOne({
         where: { subscribee, subscriber, isDeleted: false },
