@@ -5,6 +5,7 @@ import { UserRepository } from '../../repositories/user.repository';
 import { UserDto } from '../../entities/user.entity';
 import { PostRepository } from '../../repositories/post.repository';
 import { PostDto } from '../posts/dto/post.dto';
+import { StatusType } from '../../shared/constants/status-type.enum';
 
 @Injectable()
 export class SearchService {
@@ -30,6 +31,8 @@ export class SearchService {
         .orWhere(`user.userName LIKE '%${query}%'`)
         .orWhere(`user.bio LIKE '%${query}%'`)
         .orWhere(`user.location LIKE '%${query}%'`)
+        .andWhere('is_deleted = false')
+        .andWhere(`status = '${StatusType.ACTIVE}'`)
         .limit(limit || 10)
         .offset(offset || 0)
         .getManyAndCount();
@@ -57,6 +60,7 @@ export class SearchService {
         .createQueryBuilder('post')
         .where(`caption LIKE '%${query}%'`)
         .leftJoinAndSelect('post.author', 'author')
+        .leftJoinAndSelect('post.media', 'media')
         .limit(limit || 10)
         .offset(offset || 0)
         .getManyAndCount();

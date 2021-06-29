@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UserRepository } from '../../repositories/user.repository';
 import { UserDto } from '../../entities/user.entity';
 import { BaseQueryDto } from '../../shared/dtos/base-query.dto';
+import { StatusType } from '../../shared/constants/status-type.enum';
 
 @Injectable()
 export class SuggestionsService {
@@ -22,7 +23,9 @@ export class SuggestionsService {
       const { offset, limit } = queryInput;
       const { 0: users, 1: count } = await this.userRepository
         .createQueryBuilder('user')
-        .where(``)
+        .where(`id != ${userId}`)
+        .andWhere('is_deleted = false')
+        .andWhere(`status = '${StatusType.ACTIVE}'`)
         .orderBy(`RAND()`)
         .limit(limit || 3)
         .offset(offset || 0)
