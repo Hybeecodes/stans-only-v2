@@ -57,6 +57,7 @@ export class SubscriptionService {
           subscribee,
           subscriber,
         });
+        console.log(newSubscription);
         await this.subscriptionRepository.save(newSubscription);
       }
       this.eventEmitter.emit(Events.ON_NEW_SUBSCRIPTION, subscribee.id);
@@ -83,6 +84,7 @@ export class SubscriptionService {
       const subscription = await this.subscriptionRepository.findOne({
         where: { subscribee, subscriber, isDeleted: false },
       });
+      console.log(subscription);
       if (subscription) {
         subscription.isDeleted = true;
         await this.subscriptionRepository.save(subscription);
