@@ -15,10 +15,14 @@ import { LoggedInUser } from '../../utils/decorators/logged-in-user.decorator';
 import { SuccessResponseDto } from '../../shared/success-response.dto';
 import { NewCommentDto } from './dto/new-comment.dto';
 import { BaseQueryDto } from '../../shared/dtos/base-query.dto';
+import { BookmarksService } from '../bookmarks/bookmarks.service';
 
 @Controller('posts')
 export class PostsController {
-  constructor(private readonly postsService: PostsService) {}
+  constructor(
+    private readonly postsService: PostsService,
+    private readonly bookmarksService: BookmarksService,
+  ) {}
 
   @Post()
   async create(
@@ -113,5 +117,23 @@ export class PostsController {
     await this.postsService.ensureUserOwnsPost(userId, postId);
     const response = await this.postsService.remove(postId);
     return new SuccessResponseDto('Post removed Successfully', response);
+  }
+
+  @Post(':postId/bookmark')
+  async bookmarkPost(
+    @Param('postId') postId: number,
+    @LoggedInUser('id') userId: number,
+  ) {
+    const response = await this.bookmarksService.addBookmark(userId, postId);
+    return new SuccessResponseDto('Post Bookmarked Successfully', response);
+  }
+
+  @Delete(':postId/bookmark')
+  async removeBookmark(
+    @Param('postId') postId: number,
+    @LoggedInUser('id') userId: number,
+  ) {
+    const response = await this.bookmarksService.removeBookmark(userId, postId);
+    return new SuccessResponseDto('Bookmark Removed Successfully', response);
   }
 }

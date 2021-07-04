@@ -62,6 +62,14 @@ export class PostsService {
     }
   }
 
+  async findPostById(postId: number): Promise<Post> {
+    const post = await this.postRepository.findPostDetailsById(postId);
+    if (!post) {
+      throw new HttpException('Post Not Found', HttpStatus.NOT_FOUND);
+    }
+    return post;
+  }
+
   findAll() {
     return `This action returns all posts`;
   }

@@ -10,6 +10,7 @@ import { UserAuthGuard } from '../utils/guards/user-auth.guard';
 import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SuggestionsModule } from './suggestions/suggestions.module';
+import { BookmarksModule } from './bookmarks/bookmarks.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { SuggestionsModule } from './suggestions/suggestions.module';
       }),
     }),
     SuggestionsModule,
+    BookmarksModule,
   ],
   providers: [
     {
