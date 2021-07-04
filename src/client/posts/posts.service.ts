@@ -199,6 +199,41 @@ export class PostsService {
     }
   }
 
+  async getUserBookmarkedPosts(
+    bookmarkedPosts: number[],
+    queryData: BaseQueryDto,
+    userId: number,
+  ) {
+    // get list of IDs of user that this user is subscribed to
+    try {
+      const { offset, limit } = queryData;
+      const { 0: posts, 1: count } = await this.postRepository
+        .createQueryBuilder('post')
+        .leftJoinAndSelect('post.media', 'media')
+        .leftJoinAndSelect('post.author', 'author')
+        .where('post.is_deleted = false')
+        .andWhere(
+          `post.id IN (${
+            bookmarkedPosts.length > 0 ? bookmarkedPosts.join(',') : 0
+          })`,
+        )
+        .limit(limit || 10)
+        .offset(offset || 0)
+        .orderBy('post.created_at', 'DESC')
+        .getManyAndCount();
+      return {
+        count,
+        posts: await this.toPostResponse(posts, userId),
+      };
+    } catch (e) {
+      this.logger.error(`getUserTimeline Failed: ${e.message}`);
+      throw new HttpException(
+        'Unable to Fetch User Timeline',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   async addPostComment(
     input: NewCommentDto,
     postId: number,

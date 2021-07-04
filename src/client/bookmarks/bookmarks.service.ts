@@ -71,4 +71,19 @@ export class BookmarksService {
       );
     }
   }
+
+  async getAllUserBookmarks(userId: number) {
+    try {
+      const bookmarks = await this.bookmarkRepository.query(`
+      SELECT post_id FROM bookmarks WHERE user_id = ${userId} AND is_deleted = false
+      `);
+      return bookmarks.map((bookmark) => {
+        return bookmark.post_id;
+      });
+    } catch (e) {
+      this.logger.error(
+        `GET USER Bookmarks Failed: ${JSON.stringify(e.message)}`,
+      );
+    }
+  }
 }
