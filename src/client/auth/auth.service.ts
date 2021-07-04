@@ -112,9 +112,12 @@ export class AuthService {
 
   async login(input: LoginDto): Promise<{ user: UserDto; token: string }> {
     const { userName, password } = input;
-    const user = await this.userRepository.findOne({
-      where: { userName },
-    });
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .where(`user_name = '${userName}'`)
+      .orWhere(`email = '${userName}'`)
+      .andWhere('is_deleted = false')
+      .getOne();
     if (!user || !user.isPasswordValid(password)) {
       throw new HttpException(
         ErrorMessages.INVALID_LOGIN,
