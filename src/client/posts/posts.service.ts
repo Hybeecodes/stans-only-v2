@@ -159,7 +159,7 @@ export class PostsService {
         await this.entityManager.query(
           `SELECT post_id FROM bookmarks WHERE post_id IN (${postIds.join(
             ',',
-          )}) AND user_id = ${userId}`,
+          )}) AND user_id = ${userId} AND is_deleted = false`,
         );
       const bookmarkedPostIds = bookmarkedPosts.map((post) => {
         return post.post_id;
