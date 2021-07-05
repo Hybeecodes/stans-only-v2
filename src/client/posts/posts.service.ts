@@ -17,6 +17,7 @@ import { BaseQueryDto } from '../../shared/dtos/base-query.dto';
 import { Post } from '../../entities/post.entity';
 import { Like } from '../../entities/like.entity';
 import { SubscriptionService } from '../subscription/subscription.service';
+import { EntityManager } from 'typeorm';
 
 @Injectable()
 export class PostsService {
@@ -33,6 +34,7 @@ export class PostsService {
     private readonly eventEmitter: EventEmitter2,
     private readonly usersService: UsersService,
     private readonly subscriptionService: SubscriptionService,
+    private readonly entityManager: EntityManager,
   ) {
     this.logger = new Logger(PostsService.name);
   }
@@ -149,13 +151,25 @@ export class PostsService {
           ',',
         )}) AND author_id = ${userId}`,
       );
-      const likedPostIds = likedPosts.map((l) => {
-        return l.post_id;
+      const likedPostIds = likedPosts.map((post) => {
+        return post.post_id;
       });
+
+      const bookmarkedPosts: { post_id: number }[] =
+        await this.entityManager.query(
+          `SELECT post_id FROM bookmarks WHERE post_id IN (${postIds.join(
+            ',',
+          )}) AND user_id = ${userId}`,
+        );
+      const bookmarkedPostIds = bookmarkedPosts.map((post) => {
+        return post.post_id;
+      });
+
       return posts.map((p) => {
         const isLiked = likedPostIds.includes(p.id);
+        const isBookmarked = bookmarkedPostIds.includes(p.id);
         const po = new PostDto(p);
-        return { ...po, isLiked };
+        return { ...po, isLiked, isBookmarked };
       });
     } else {
       return posts.map((p) => {
