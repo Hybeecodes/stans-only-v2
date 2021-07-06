@@ -54,12 +54,8 @@ export class BookmarksService {
       });
       if (!bookmark) {
         throw new HttpException('Bookmark Not Found', HttpStatus.BAD_REQUEST);
-      } else if (bookmark.isDeleted) {
-        await this.bookmarkRepository.update(
-          { user, post },
-          { isDeleted: false },
-        );
       }
+      await this.bookmarkRepository.update({ user, post }, { isDeleted: true });
       return Promise.resolve(undefined);
     } catch (e) {
       this.logger.error(
