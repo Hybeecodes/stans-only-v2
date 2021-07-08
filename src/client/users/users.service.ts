@@ -9,6 +9,7 @@ import { NotificationSettingsResponseDto } from './dtos/notification-settings-re
 import { UpdateUserProfileDto } from './dtos/update-user-profile.dto';
 import { UserAccountDetailsDto } from './dtos/user-account-details.dto';
 import { UpdateUserAccountDetailsDto } from './dtos/update-user-account-details.dto';
+import { EntityManager } from 'typeorm';
 
 @Injectable()
 export class UsersService {
@@ -17,6 +18,7 @@ export class UsersService {
   constructor(
     @InjectRepository(UserRepository)
     private readonly userRepository: UserRepository,
+    private readonly entityManager: EntityManager,
   ) {
     this.logger = new Logger(UsersService.name);
   }
@@ -29,12 +31,20 @@ export class UsersService {
     return this.userRepository.findUserByUserName(username);
   }
 
-  async getUserProfile(username: string): Promise<UserProfileDto> {
+  async getUserProfile(
+    username: string,
+    currentUserId: number,
+  ): Promise<UserProfileDto> {
     const user = await this.userRepository.findUserByUserName(username);
     if (!user) {
       throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
     }
-    return new UserProfileDto(user);
+    const { 0: subscription } = await this.entityManager.query(
+      `SELECT * FROM subscriptions WHERE subscriber_id = ${currentUserId} AND subscribee_id = ${user.id} AND is_deleted = false LIMIT 1`,
+    );
+
+    const profile = new UserProfileDto(user);
+    return { ...profile, isSubscribedToUser: Boolean(subscription) };
   }
 
   async findUserById(userId: number): Promise<User> {

@@ -17,6 +17,7 @@ export class UserProfileDto implements Partial<User> {
   public dateOfBirth: Date;
   public emailNotificationStatus: boolean;
   public pushNotificationStatus: boolean;
+  public isSubscribedToUser: boolean;
 
   constructor(user: User) {
     this.id = user.id;

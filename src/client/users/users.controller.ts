@@ -18,8 +18,11 @@ export class UsersController {
   ) {}
 
   @Get('profile/:username')
-  async getUserProfile(@Param('username') username: string) {
-    const response = await this.usersService.getUserProfile(username);
+  async getUserProfile(
+    @Param('username') username: string,
+    @LoggedInUser('id') userId: number,
+  ) {
+    const response = await this.usersService.getUserProfile(username, userId);
     return new SuccessResponseDto('Successful', response);
   }
 
