@@ -18,6 +18,8 @@ import { Post } from '../../entities/post.entity';
 import { Like } from '../../entities/like.entity';
 import { SubscriptionService } from '../subscription/subscription.service';
 import { EntityManager } from 'typeorm';
+import { NewNotificationDto } from '../notifications/dtos/new-notification.dto';
+import { NotificationType } from '../../entities/notification.entity';
 
 @Injectable()
 export class PostsService {
@@ -267,6 +269,13 @@ export class PostsService {
       });
       await this.postRepository.save(newComment);
       this.eventEmitter.emit(Events.ON_NEW_COMMENT, postId);
+      const notification = new NewNotificationDto();
+      notification.senderId = authorId;
+      notification.recipientId = post.author.id;
+      notification.message = `${author.userName} commented on your post`;
+      notification.type = NotificationType.COMMENT;
+
+      this.eventEmitter.emit(Events.NEW_NOTIFICATION, notification);
     } catch (e) {
       this.logger.error(
         `Unable to Add new Comment: ${JSON.stringify(e.message)}`,
@@ -308,7 +317,13 @@ export class PostsService {
         author,
       });
       await this.likeRepository.save(newLike);
+      const notification = new NewNotificationDto();
+      notification.senderId = authorId;
+      notification.recipientId = post.author.id;
+      notification.message = `${author.userName} liked on your post`;
+      notification.type = NotificationType.LIKE;
       this.eventEmitter.emit(Events.ON_NEW_LIKE, postId);
+      this.eventEmitter.emit(Events.NEW_NOTIFICATION, notification);
     } catch (e) {
       this.logger.error(`Unable to Like Post: ${JSON.stringify(e.message)}`);
       throw new HttpException(

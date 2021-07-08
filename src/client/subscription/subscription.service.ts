@@ -8,6 +8,8 @@ import { BaseQueryDto } from '../../shared/dtos/base-query.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Events } from '../../events/client/events.enum';
 import { SubscribersDto } from './dto/subscribers.dto';
+import { NewNotificationDto } from '../notifications/dtos/new-notification.dto';
+import { NotificationType } from '../../entities/notification.entity';
 
 @Injectable()
 export class SubscriptionService {
@@ -57,10 +59,17 @@ export class SubscriptionService {
           subscribee,
           subscriber,
         });
-        console.log(newSubscription);
         await this.subscriptionRepository.save(newSubscription);
       }
       this.eventEmitter.emit(Events.ON_NEW_SUBSCRIPTION, subscribee.id);
+
+      const notification = new NewNotificationDto();
+      notification.senderId = subscriberId;
+      notification.recipientId = subscribee.id;
+      notification.message = `${subscriber.userName} Subscribed to you`;
+      notification.type = NotificationType.SUBSCRIPTION;
+
+      this.eventEmitter.emit(Events.NEW_NOTIFICATION, notification);
     } catch (e) {
       this.logger.error(
         `Create Subscription Failed: ${JSON.stringify(e.message)}`,

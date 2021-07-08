@@ -11,6 +11,7 @@ import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SuggestionsModule } from './suggestions/suggestions.module';
 import { BookmarksModule } from './bookmarks/bookmarks.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { BookmarksModule } from './bookmarks/bookmarks.module';
     }),
     SuggestionsModule,
     BookmarksModule,
+    NotificationsModule,
   ],
   providers: [
     {

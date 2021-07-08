@@ -7,4 +7,5 @@ export enum Events {
   ON_UNLIKE = 'like.remove',
   ON_NEW_SUBSCRIPTION = 'subscription.new',
   ON_REMOVE_SUBSCRIPTION = 'subscription.remove',
+  NEW_NOTIFICATION = 'notification.new',
 }
