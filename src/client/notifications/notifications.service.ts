@@ -78,6 +78,23 @@ export class NotificationsService {
     }
   }
 
+  async readUserNotifications(notificationId: number): Promise<void> {
+    try {
+      await this.notificationRepository.update(
+        { id: notificationId },
+        { status: NotificationStatus.READ, readDate: new Date() },
+      );
+    } catch (e) {
+      this.logger.error(
+        `readAllUserNotifications Failed: ${JSON.stringify(e.message)}`,
+      );
+      throw new HttpException(
+        'Unable to Mark Notifications as Read',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   async getAllUserNotifications(
     userId: number,
     queryInput: NotificationQueryDto,

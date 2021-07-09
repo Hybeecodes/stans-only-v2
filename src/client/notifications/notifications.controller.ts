@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Query } from '@nestjs/common';
+import { Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import { LoggedInUser } from '../../utils/decorators/logged-in-user.decorator';
 import { NotificationQueryDto } from './dtos/notification-query.dto';
@@ -29,6 +29,17 @@ export class NotificationsController {
     );
     return new SuccessResponseDto(
       'Notifications Marked Read Successfully',
+      response,
+    );
+  }
+
+  @Post(':id/read')
+  async readOneUserNotifications(
+    @Param('id') id: number,
+  ): Promise<SuccessResponseDto> {
+    const response = await this.notificationsService.readUserNotifications(id);
+    return new SuccessResponseDto(
+      'Notification Marked Read Successfully',
       response,
     );
   }
