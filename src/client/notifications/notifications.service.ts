@@ -95,6 +95,25 @@ export class NotificationsService {
     }
   }
 
+  async getUserUnreadNotificationCount(userId: number): Promise<string> {
+    try {
+      const {
+        0: { notificationCount },
+      } = await this.notificationRepository.query(
+        `SELECT COUNT(id) AS notificationCount FROM  notifications WHERE recipient_id = ${userId} AND is_deleted = false`,
+      );
+      return notificationCount as string;
+    } catch (e) {
+      this.logger.error(
+        `Unable to Fetch User Notifications: ${JSON.stringify(e.message)}`,
+      );
+      throw new HttpException(
+        'Unable to Fetch User Notifications',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   async getAllUserNotifications(
     userId: number,
     queryInput: NotificationQueryDto,

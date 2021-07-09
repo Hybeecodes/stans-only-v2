@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UserRepository } from '../../repositories/user.repository';
 import { RegisterDto } from './dtos/register.dto';
 import { ErrorMessages } from '../../shared/constants/error-messages.enum';
-import { User, UserDto } from '../../entities/user.entity';
+import { User, UserDto, UserLoginResponse } from '../../entities/user.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Events } from '../../events/client/events.enum';
 import { VerifyEmailDto } from './dtos/verify-email.dto';
@@ -17,6 +17,7 @@ import { comparePassword, hashPassword } from '../../utils/helpers';
 import { ResendVerificationDto } from './dtos/resend-verification.dto';
 import { SocialLoginDto } from './dtos/social-login.dto';
 import { UpdatePasswordDto } from './dtos/update-password.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class AuthService {
@@ -26,6 +27,7 @@ export class AuthService {
     private readonly userRepository: UserRepository,
     private readonly jwtService: JwtService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly notificationsService: NotificationsService,
   ) {
     this.logger = new Logger(AuthService.name);
   }
@@ -110,7 +112,9 @@ export class AuthService {
     }
   }
 
-  async login(input: LoginDto): Promise<{ user: UserDto; token: string }> {
+  async login(
+    input: LoginDto,
+  ): Promise<{ user: UserLoginResponse; token: string }> {
     const { userName, password } = input;
     const user = await this.userRepository
       .createQueryBuilder('user')
@@ -139,12 +143,20 @@ export class AuthService {
       throw new HttpException('User Suspended', HttpStatus.BAD_REQUEST);
     }
     try {
+      const notificationCount =
+        await this.notificationsService.getUserUnreadNotificationCount(user.id);
       const token = this.jwtService.sign({ email: user.email });
       return {
-        user: user.toUserResponse(),
+        user: {
+          ...user.toUserResponse(),
+          notificationCount: Number(notificationCount),
+        },
         token,
       };
-    } catch (e) {}
+    } catch (e) {
+      this.logger.error(`Login Failed: ${JSON.stringify(e.message)}`);
+      throw new HttpException('Login Failed', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   async forgotPassword(input: ForgotPasswordDto): Promise<void> {

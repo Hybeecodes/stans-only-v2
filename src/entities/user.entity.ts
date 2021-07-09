@@ -142,3 +142,7 @@ export interface UserDto {
   profilePictureUrl: string;
   isContentCreator: boolean;
 }
+
+export interface UserLoginResponse extends UserDto {
+  notificationCount: number;
+}
