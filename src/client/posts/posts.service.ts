@@ -274,7 +274,7 @@ export class PostsService {
       notification.recipientId = post.author.id;
       notification.message = `${author.userName} commented on your post`;
       notification.type = NotificationType.COMMENT;
-      notification.meta = JSON.stringify({ postId });
+      notification.meta = { postId };
       this.eventEmitter.emit(Events.NEW_NOTIFICATION, notification);
     } catch (e) {
       this.logger.error(
@@ -322,7 +322,7 @@ export class PostsService {
       notification.recipientId = post.author.id;
       notification.message = `${author.userName} liked on your post`;
       notification.type = NotificationType.LIKE;
-      notification.meta = JSON.stringify({ postId });
+      notification.meta = { postId };
       this.eventEmitter.emit(Events.ON_NEW_LIKE, postId);
       this.eventEmitter.emit(Events.NEW_NOTIFICATION, notification);
     } catch (e) {

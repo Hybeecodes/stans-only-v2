@@ -7,7 +7,7 @@ export class NotificationDto {
   public type: string;
   public url: string;
   public readDate: Date;
-  public meta: any;
+  public meta: { postId: number };
   public sender: {
     id: number;
     firstName: string;
@@ -16,12 +16,15 @@ export class NotificationDto {
     profilePictureUrl: string;
   };
   constructor(notification: Notification) {
+    const parsedMeta = JSON.parse(notification.meta);
     this.id = notification.id;
     this.message = notification.message;
     this.status = notification.status;
     this.type = notification.type;
     this.readDate = notification.readDate;
-    this.meta = JSON.parse(notification.meta);
+    this.meta = {
+      postId: parsedMeta.postId,
+    };
     this.sender = {
       id: notification.sender.id,
       firstName: notification.sender.firstName,
