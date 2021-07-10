@@ -7,7 +7,7 @@ export class PostDetailsDto {
   public commentsCount: number;
   public likesCount: number;
   public createdAt: Date;
-  public media: string[];
+  public media: { url: string; mediaType: string }[];
   public comments: Post[];
   public likes: Like[];
   public author: {
@@ -25,9 +25,14 @@ export class PostDetailsDto {
     this.likesCount = post.likesCount;
     this.comments = post.comments;
     this.likes = post.likes;
-    this.media = post.media.map((m) => {
-      return m.url;
-    });
+    this.media =
+      post.media &&
+      post.media.map((m) => {
+        return {
+          url: m.url,
+          mediaType: m.mediaType,
+        };
+      });
     this.author = {
       id: post.author.id,
       firstName: post.author.firstName,
