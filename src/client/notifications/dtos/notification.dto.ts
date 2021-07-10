@@ -7,6 +7,7 @@ export class NotificationDto {
   public type: string;
   public url: string;
   public readDate: Date;
+  public meta: any;
   public sender: {
     id: number;
     firstName: string;
@@ -20,6 +21,7 @@ export class NotificationDto {
     this.status = notification.status;
     this.type = notification.type;
     this.readDate = notification.readDate;
+    this.meta = JSON.parse(notification.meta);
     this.sender = {
       id: notification.sender.id,
       firstName: notification.sender.firstName,
