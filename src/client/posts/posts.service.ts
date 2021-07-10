@@ -96,7 +96,7 @@ export class PostsService {
     isLiked: boolean;
     caption: string;
     id: number;
-    media: string[];
+    media: { url: string; mediaType: string }[];
     likes: Like[];
   }> {
     const post = await this.postRepository.findPostDetailsById(id);
