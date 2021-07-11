@@ -100,7 +100,7 @@ export class NotificationsService {
       const {
         0: { notificationCount },
       } = await this.notificationRepository.query(
-        `SELECT COUNT(id) AS notificationCount FROM  notifications WHERE recipient_id = ${userId} AND is_deleted = false`,
+        `SELECT COUNT(id) AS notificationCount FROM  notifications WHERE recipient_id = ${userId} AND status = '${NotificationStatus.UNREAD}' AND is_deleted = false`,
       );
       return notificationCount as string;
     } catch (e) {
