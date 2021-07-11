@@ -6,7 +6,7 @@ export class NotificationDto {
   public status: string;
   public type: string;
   public url: string;
-  public readDate: Date;
+  public createdDate: Date;
   public meta: { postId: number };
   public sender: {
     id: number;
@@ -21,7 +21,7 @@ export class NotificationDto {
     this.message = notification.message;
     this.status = notification.status;
     this.type = notification.type;
-    this.readDate = notification.readDate;
+    this.createdDate = notification.createdAt;
     this.meta = {
       postId: parsedMeta.postId,
     };
