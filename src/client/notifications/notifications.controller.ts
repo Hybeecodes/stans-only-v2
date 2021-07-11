@@ -20,6 +20,15 @@ export class NotificationsController {
     return new SuccessResponseDto('Successful', response);
   }
 
+  @Get('count')
+  async getUserUnreadNotificationCount(
+    @LoggedInUser('id') id: number,
+  ): Promise<SuccessResponseDto> {
+    const response =
+      await this.notificationsService.getUserUnreadNotificationCount(id);
+    return new SuccessResponseDto('Successful', response);
+  }
+
   @Post('read')
   async readAllUserNotifications(
     @LoggedInUser('id') id: number,
