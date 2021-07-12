@@ -16,15 +16,17 @@ export class NotificationDto {
     profilePictureUrl: string;
   };
   constructor(notification: Notification) {
-    const parsedMeta = JSON.parse(notification.meta);
     this.id = notification.id;
     this.message = notification.message;
     this.status = notification.status;
     this.type = notification.type;
     this.createdDate = notification.createdAt;
-    this.meta = {
-      postId: parsedMeta.postId,
-    };
+    if (notification.meta) {
+      const parsedMeta = JSON.parse(notification.meta);
+      this.meta = {
+        postId: parsedMeta.postId,
+      };
+    }
     this.sender = {
       id: notification.sender.id,
       firstName: notification.sender.firstName,

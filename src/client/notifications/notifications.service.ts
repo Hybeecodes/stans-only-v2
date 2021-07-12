@@ -138,11 +138,11 @@ export class NotificationsService {
       return {
         count,
         notifications: notifications.map((n) => {
-          const notification = new NotificationDto(n);
-          return { ...notification, url: this.generateNotificationUrl(n.type) };
+          return new NotificationDto(n);
         }),
       };
     } catch (e) {
+      console.log(e);
       this.logger.error(
         `getAllUserNotifications Failed: ${JSON.stringify(e.message)}`,
       );
