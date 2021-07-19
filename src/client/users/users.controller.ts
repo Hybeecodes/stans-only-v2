@@ -182,6 +182,6 @@ export class UsersController {
       input,
       userId,
     );
-    return new SuccessResponseDto('Post Reported Successfully', response);
+    return new SuccessResponseDto('User Reported Successfully', response);
   }
 }
