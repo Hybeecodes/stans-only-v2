@@ -5,12 +5,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserRepository } from '../../repositories/user.repository';
 import { PostsModule } from '../posts/posts.module';
 import { SubscriptionModule } from '../subscription/subscription.module';
+import { ReportsModule } from '../reports/reports.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([UserRepository]),
     PostsModule,
     SubscriptionModule,
+    ReportsModule,
   ],
   controllers: [UsersController],
   providers: [UsersService],

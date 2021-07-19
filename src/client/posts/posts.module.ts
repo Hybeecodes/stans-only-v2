@@ -9,12 +9,14 @@ import { CommentRepository } from '../../repositories/comment.repository';
 import { LikeRepository } from '../../repositories/like.repository';
 import { SubscriptionModule } from '../subscription/subscription.module';
 import { BookmarksModule } from '../bookmarks/bookmarks.module';
+import { ReportsModule } from '../reports/reports.module';
 
 @Module({
   imports: [
     forwardRef(() => UsersModule),
     SubscriptionModule,
     BookmarksModule,
+    ReportsModule,
     TypeOrmModule.forFeature([
       PostRepository,
       PostMediaRepository,

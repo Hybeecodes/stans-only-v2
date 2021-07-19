@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpException,
+  HttpStatus,
+  Param,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { SuccessResponseDto } from '../../shared/success-response.dto';
 import { LoggedInUser } from '../../utils/decorators/logged-in-user.decorator';
@@ -8,6 +18,9 @@ import { UpdateUserAccountDetailsDto } from './dtos/update-user-account-details.
 import { PostsService } from '../posts/posts.service';
 import { BaseQueryDto } from '../../shared/dtos/base-query.dto';
 import { SubscriptionService } from '../subscription/subscription.service';
+import { NewReportDto } from '../reports/dtos/new-report.dto';
+import { ReportedType } from '../../entities/report.entity';
+import { ReportsService } from '../reports/reports.service';
 
 @Controller('users')
 export class UsersController {
@@ -15,6 +28,7 @@ export class UsersController {
     private readonly usersService: UsersService,
     private readonly postsService: PostsService,
     private readonly subscriptionService: SubscriptionService,
+    private readonly reportsService: ReportsService,
   ) {}
 
   @Get('profile/:username')
@@ -150,5 +164,24 @@ export class UsersController {
       queryData,
     );
     return new SuccessResponseDto('Successful', response);
+  }
+
+  @Post(':userName/report')
+  async reportPost(
+    @Param('userName') userName: string,
+    @LoggedInUser('id') userId: number,
+    @Body() input: NewReportDto,
+  ) {
+    const reported = await this.usersService.getUserByUsername(userName);
+    if (!reported) {
+      throw new HttpException('User Not Found', HttpStatus.BAD_REQUEST);
+    }
+    const response = await this.reportsService.addReport(
+      reported.id,
+      ReportedType.USER,
+      input,
+      userId,
+    );
+    return new SuccessResponseDto('Post Reported Successfully', response);
   }
 }

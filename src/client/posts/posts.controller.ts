@@ -16,12 +16,16 @@ import { SuccessResponseDto } from '../../shared/success-response.dto';
 import { NewCommentDto } from './dto/new-comment.dto';
 import { BaseQueryDto } from '../../shared/dtos/base-query.dto';
 import { BookmarksService } from '../bookmarks/bookmarks.service';
+import { ReportsService } from '../reports/reports.service';
+import { ReportedType } from '../../entities/report.entity';
+import { NewReportDto } from '../reports/dtos/new-report.dto';
 
 @Controller('posts')
 export class PostsController {
   constructor(
     private readonly postsService: PostsService,
     private readonly bookmarksService: BookmarksService,
+    private readonly reportsService: ReportsService,
   ) {}
 
   @Post()
@@ -135,5 +139,20 @@ export class PostsController {
   ) {
     const response = await this.bookmarksService.removeBookmark(userId, postId);
     return new SuccessResponseDto('Bookmark Removed Successfully', response);
+  }
+
+  @Post(':postId/report')
+  async reportPost(
+    @Param('postId') postId: number,
+    @LoggedInUser('id') userId: number,
+    @Body() input: NewReportDto,
+  ) {
+    const response = await this.reportsService.addReport(
+      postId,
+      ReportedType.POST,
+      input,
+      userId,
+    );
+    return new SuccessResponseDto('Post Reported Successfully', response);
   }
 }
