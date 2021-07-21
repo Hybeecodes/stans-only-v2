@@ -10,6 +10,7 @@ import { LikeRepository } from '../../repositories/like.repository';
 import { SubscriptionModule } from '../subscription/subscription.module';
 import { BookmarksModule } from '../bookmarks/bookmarks.module';
 import { ReportsModule } from '../reports/reports.module';
+import { BlockModule } from '../block/block.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { ReportsModule } from '../reports/reports.module';
     SubscriptionModule,
     BookmarksModule,
     ReportsModule,
+    BlockModule,
     TypeOrmModule.forFeature([
       PostRepository,
       PostMediaRepository,

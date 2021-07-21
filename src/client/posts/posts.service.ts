@@ -20,6 +20,7 @@ import { SubscriptionService } from '../subscription/subscription.service';
 import { EntityManager } from 'typeorm';
 import { NewNotificationDto } from '../notifications/dtos/new-notification.dto';
 import { NotificationType } from '../../entities/notification.entity';
+import { BlockService } from '../block/block.service';
 
 @Injectable()
 export class PostsService {
@@ -36,6 +37,7 @@ export class PostsService {
     private readonly eventEmitter: EventEmitter2,
     private readonly usersService: UsersService,
     private readonly subscriptionService: SubscriptionService,
+    private readonly blockService: BlockService,
     private readonly entityManager: EntityManager,
   ) {
     this.logger = new Logger(PostsService.name);
@@ -187,6 +189,11 @@ export class PostsService {
       const subscriptions: number[] =
         await this.subscriptionService.getAllUserSubscriptions(userId);
       subscriptions.push(userId); // add user Id so we can fetch users posts also
+      const blockedUsers: number[] =
+        await this.blockService.getAllBlockedUserIds(userId);
+      const resultingUserIds = subscriptions.filter((sub) => {
+        return !blockedUsers.includes(sub);
+      });
       const { offset, limit } = queryData;
       const { 0: posts, 1: count } = await this.postRepository
         .createQueryBuilder('post')
@@ -195,7 +202,7 @@ export class PostsService {
         .where('post.is_deleted = false')
         .andWhere(
           `post.author_id IN (${
-            subscriptions.length > 0 ? subscriptions.join(',') : 0
+            resultingUserIds.length > 0 ? resultingUserIds.join(',') : 0
           })`,
         )
         .limit(limit || 10)
