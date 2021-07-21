@@ -187,4 +187,28 @@ export class UsersService {
       );
     }
   }
+
+  async incrementBlockedUsers(userId: number): Promise<void> {
+    try {
+      await this.userRepository.query(
+        `UPDATE users SET blocked_count = blocked_count+1 WHERE id = ${userId}`,
+      );
+    } catch (e) {
+      this.logger.error(
+        `incrementBlockedUsers operation Failed: ${JSON.stringify(e.message)}`,
+      );
+    }
+  }
+
+  async decrementBlockedUsers(postId: number): Promise<void> {
+    try {
+      await this.userRepository.query(
+        `UPDATE users SET blocked_count = blocked_count-1 WHERE id = ${postId}`,
+      );
+    } catch (e) {
+      this.logger.error(
+        `decrementBlockedUsers operation Failed: ${JSON.stringify(e.message)}`,
+      );
+    }
+  }
 }

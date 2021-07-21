@@ -7,6 +7,7 @@ import { SubscriptionEventHandlerService } from './subscription-event-handler/su
 import { UsersModule } from '../../../client/users/users.module';
 import { NotificationEventHandlerService } from './notification-event-handler/notification-event-handler.service';
 import { NotificationsModule } from '../../../client/notifications/notifications.module';
+import { BlockageEventHandlerService } from './blockage-event-handler/blockage-event-handler.service';
 
 @Module({
   imports: [NotificationModule, PostsModule, UsersModule, NotificationsModule],
@@ -15,6 +16,7 @@ import { NotificationsModule } from '../../../client/notifications/notifications
     PostEventHandlerService,
     SubscriptionEventHandlerService,
     NotificationEventHandlerService,
+    BlockageEventHandlerService,
   ],
   exports: [AuthEventHandlerService],
 })

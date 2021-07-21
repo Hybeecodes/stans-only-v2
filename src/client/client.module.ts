@@ -13,6 +13,7 @@ import { SuggestionsModule } from './suggestions/suggestions.module';
 import { BookmarksModule } from './bookmarks/bookmarks.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ReportsModule } from './reports/reports.module';
+import { BlockModule } from './block/block.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { ReportsModule } from './reports/reports.module';
     BookmarksModule,
     NotificationsModule,
     ReportsModule,
+    BlockModule,
   ],
   providers: [
     {

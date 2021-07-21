@@ -11,6 +11,7 @@ export class UserProfileDto implements Partial<User> {
   public profilePictureUrl: string;
   public isContentCreator: boolean;
   public subscribersCount: number;
+  public blockedCount: number;
   public bio: string;
   public location: string;
   public webLink: string;
@@ -28,6 +29,7 @@ export class UserProfileDto implements Partial<User> {
     this.phoneNumber = user.phoneNumber;
     this.coverPictureUrl = user.coverPictureUrl;
     this.subscribersCount = user.subscribersCount;
+    this.blockedCount = user.blockedCount;
     this.profilePictureUrl = user.profilePictureUrl;
     this.isContentCreator = user.isContentCreator;
     this.bio = user.bio;

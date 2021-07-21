@@ -21,6 +21,7 @@ import { SubscriptionService } from '../subscription/subscription.service';
 import { NewReportDto } from '../reports/dtos/new-report.dto';
 import { ReportedType } from '../../entities/report.entity';
 import { ReportsService } from '../reports/reports.service';
+import { BlockService } from '../block/block.service';
 
 @Controller('users')
 export class UsersController {
@@ -29,6 +30,7 @@ export class UsersController {
     private readonly postsService: PostsService,
     private readonly subscriptionService: SubscriptionService,
     private readonly reportsService: ReportsService,
+    private readonly blockService: BlockService,
   ) {}
 
   @Get('profile/:username')
@@ -112,6 +114,36 @@ export class UsersController {
       queryData,
     );
     return new SuccessResponseDto('User Posts Successful', response);
+  }
+
+  @Post(':userName/block')
+  async blockUser(
+    @LoggedInUser('id') blockerId: number,
+    @Param('userName') userName: string,
+  ): Promise<SuccessResponseDto> {
+    const response = await this.blockService.blockUser(blockerId, userName);
+    return new SuccessResponseDto('User Blocked Successfully', response);
+  }
+
+  @Post(':userName/unblock')
+  async unBlockUser(
+    @LoggedInUser('id') blockerId: number,
+    @Param('userName') userName: string,
+  ): Promise<SuccessResponseDto> {
+    const response = await this.blockService.unblockUser(blockerId, userName);
+    return new SuccessResponseDto('User Unblocked Successfully', response);
+  }
+
+  @Get(':userName/blocked-users')
+  async getBlockedUsers(
+    @Param('userName') userName: string,
+    @Query() queryData: BaseQueryDto,
+  ): Promise<SuccessResponseDto> {
+    const response = await this.blockService.getBlockedUsers(
+      userName,
+      queryData,
+    );
+    return new SuccessResponseDto('Successful', response);
   }
 
   ////////////////////Subscription ///////////////////////

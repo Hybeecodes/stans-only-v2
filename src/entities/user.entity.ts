@@ -73,6 +73,9 @@ export class User {
   @Column('int', { nullable: false, default: 0 })
   subscribersCount: number;
 
+  @Column('int', { nullable: false, default: 0 })
+  blockedCount: number;
+
   @Column('enum', {
     nullable: false,
     default: StatusType.INACTIVE,

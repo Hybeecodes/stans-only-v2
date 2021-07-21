@@ -6,6 +6,7 @@ import { UserRepository } from '../../repositories/user.repository';
 import { PostsModule } from '../posts/posts.module';
 import { SubscriptionModule } from '../subscription/subscription.module';
 import { ReportsModule } from '../reports/reports.module';
+import { BlockModule } from '../block/block.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { ReportsModule } from '../reports/reports.module';
     PostsModule,
     SubscriptionModule,
     ReportsModule,
+    BlockModule,
   ],
   controllers: [UsersController],
   providers: [UsersService],
