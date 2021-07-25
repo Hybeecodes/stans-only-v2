@@ -5,7 +5,6 @@ import {
   IsEmail,
   IsNotEmpty,
   IsString,
-  Matches,
   MaxLength,
   MinLength,
 } from 'class-validator';
@@ -26,7 +25,6 @@ export class RegisterDto {
   @IsDefined()
   @IsNotEmpty()
   @IsString()
-  @Matches(/[^a-z0-9]/gi, { message: 'Username must be Alphanumeric' })
   @MaxLength(30)
   @MinLength(3)
   userName: string;
