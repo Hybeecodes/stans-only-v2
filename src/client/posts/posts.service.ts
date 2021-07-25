@@ -48,7 +48,7 @@ export class PostsService {
       const { media, caption } = createPostDto;
       const post = await this.postRepository.createPost({
         author: user,
-        caption,
+        caption: caption || '',
       });
       for (const { url, mediaType } of media) {
         const postMedia = this.postMediaRepository.create({

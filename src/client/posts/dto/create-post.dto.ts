@@ -11,7 +11,7 @@ import {
 import { MediaTypes } from '../../enums/image-types.enum';
 
 export class CreatePostDto {
-  @IsDefined()
+  @IsOptional()
   @IsNotEmpty()
   @IsString()
   caption: string;
