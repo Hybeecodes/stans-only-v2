@@ -111,7 +111,6 @@ export class PostsService {
       .createQueryBuilder()
       .where(`post_id = ${post.id}`)
       .andWhere(`author_id = ${userId}`)
-      .andWhere(`parent_id = null`)
       .getOne();
     const postResponse = new PostDetailsDto(post);
     return { ...postResponse, isLiked: !!isLiked };
@@ -203,7 +202,7 @@ export class PostsService {
         .leftJoinAndSelect('post.media', 'media')
         .leftJoinAndSelect('post.author', 'author')
         .where('post.is_deleted = false')
-        .andWhere(`post.parent_id = null`)
+        .andWhere(`post.parent_id IS NULL`)
         .andWhere(
           `post.author_id IN (${
             resultingUserIds.length > 0 ? resultingUserIds.join(',') : 0
@@ -213,6 +212,7 @@ export class PostsService {
         .offset(offset || 0)
         .orderBy('post.created_at', 'DESC')
         .getManyAndCount();
+      console.log('count', count);
       return {
         count,
         posts: await this.toPostResponse(posts, userId),
