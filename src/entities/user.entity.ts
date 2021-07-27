@@ -10,6 +10,11 @@ import { StatusType } from '../shared/constants/status-type.enum';
 import { comparePassword, hashPassword } from '../utils/helpers';
 import { Exclude } from 'class-transformer';
 
+export enum SubscriptionType {
+  FREE = 'FREE',
+  PAID = 'PAID',
+}
+
 @Entity()
 export class User {
   @PrimaryGeneratedColumn('increment')
@@ -82,6 +87,13 @@ export class User {
     enum: StatusType,
   })
   status: string;
+
+  @Column('enum', {
+    nullable: false,
+    default: SubscriptionType.FREE,
+    enum: SubscriptionType,
+  })
+  subscriptionType: string;
 
   @Column('boolean', { nullable: false, default: false })
   isDeleted: boolean;

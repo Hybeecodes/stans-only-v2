@@ -92,10 +92,10 @@ export class BlockService {
   }
 
   async getBlockedUsers(
-    userName: string,
+    userId: number,
     queryData: BaseQueryDto,
   ): Promise<BlockageDto[]> {
-    const user = await this.usersService.getUserByUsername(userName);
+    const user = await this.usersService.findUserById(userId);
     try {
       const { limit, offset } = queryData;
       const blockages = await this.blockRepository.find({

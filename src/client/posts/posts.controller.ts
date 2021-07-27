@@ -52,6 +52,31 @@ export class PostsController {
     return new SuccessResponseDto('Successfully', response);
   }
 
+  @Delete(':postId/comments/:commentId')
+  async deletePostComment(
+    @LoggedInUser('id') userId: number,
+    @Param('postId') postId: number,
+    @Param('commentId') commentId: number,
+  ) {
+    const response = await this.postsService.deleteComment(
+      commentId,
+      postId,
+      userId,
+    );
+    return new SuccessResponseDto('Comment Deleted Successfully', response);
+  }
+
+  @Patch(':postId/comments/:commentId')
+  async updateComment(
+    @LoggedInUser('id') userId: number,
+    @Param('commentId') commentId: number,
+    @Body() input: NewCommentDto,
+  ) {
+    await this.postsService.ensureUserOwnsPost(userId, commentId);
+    const response = await this.postsService.updateComment(commentId, input);
+    return new SuccessResponseDto('Comment Updated Successfully', response);
+  }
+
   @Post(':postId/comments')
   async addPostComment(
     @LoggedInUser('id') userId: number,

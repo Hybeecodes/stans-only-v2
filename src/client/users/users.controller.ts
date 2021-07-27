@@ -136,13 +136,10 @@ export class UsersController {
 
   @Get(':userName/blocked-users')
   async getBlockedUsers(
-    @Param('userName') userName: string,
+    @LoggedInUser('id') userId: number,
     @Query() queryData: BaseQueryDto,
   ): Promise<SuccessResponseDto> {
-    const response = await this.blockService.getBlockedUsers(
-      userName,
-      queryData,
-    );
+    const response = await this.blockService.getBlockedUsers(userId, queryData);
     return new SuccessResponseDto('Successful', response);
   }
 

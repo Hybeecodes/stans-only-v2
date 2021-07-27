@@ -44,8 +44,14 @@ export class PostsService {
   }
   async create(userId: number, createPostDto: CreatePostDto): Promise<boolean> {
     const user = await this.usersService.findUserById(userId);
+    const { media, caption } = createPostDto;
+    if (media.length > 5) {
+      throw new HttpException(
+        'Maximum of 5 Media Expected',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     try {
-      const { media, caption } = createPostDto;
       const post = await this.postRepository.createPost({
         author: user,
         caption: caption || '',
@@ -74,10 +80,6 @@ export class PostsService {
       throw new HttpException('Post Not Found', HttpStatus.NOT_FOUND);
     }
     return post;
-  }
-
-  findAll() {
-    return `This action returns all posts`;
   }
 
   async findOne(
@@ -109,6 +111,7 @@ export class PostsService {
       .createQueryBuilder()
       .where(`post_id = ${post.id}`)
       .andWhere(`author_id = ${userId}`)
+      .andWhere(`parent_id = null`)
       .getOne();
     const postResponse = new PostDetailsDto(post);
     return { ...postResponse, isLiked: !!isLiked };
@@ -126,7 +129,7 @@ export class PostsService {
       const { offset, limit } = queryData;
       const { 0: userPosts, 1: count } = await this.postRepository.findAndCount(
         {
-          where: { author: user, isDeleted: false },
+          where: { author: user, isDeleted: false, parent: null },
           relations: ['comments', 'likes', 'author', 'media'],
           skip: offset || 0,
           take: limit || 10,
@@ -200,6 +203,7 @@ export class PostsService {
         .leftJoinAndSelect('post.media', 'media')
         .leftJoinAndSelect('post.author', 'author')
         .where('post.is_deleted = false')
+        .andWhere(`post.parent_id = null`)
         .andWhere(
           `post.author_id IN (${
             resultingUserIds.length > 0 ? resultingUserIds.join(',') : 0
@@ -235,6 +239,7 @@ export class PostsService {
         .leftJoinAndSelect('post.media', 'media')
         .leftJoinAndSelect('post.author', 'author')
         .where('post.is_deleted = false')
+        .andWhere(`post.parent_id = null`)
         .andWhere(
           `post.id IN (${
             bookmarkedPosts.length > 0 ? bookmarkedPosts.join(',') : 0
@@ -289,6 +294,42 @@ export class PostsService {
       );
       throw new HttpException(
         'Unable to Add new Comment',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async deleteComment(
+    commentId: number,
+    postId: number,
+    userId: number,
+  ): Promise<void> {
+    const post = await this.postRepository.findPostById(postId);
+    if (!post) {
+      throw new HttpException('Post Not Found', HttpStatus.NOT_FOUND);
+    }
+    const comment = await this.postRepository.findOne({
+      where: { id: commentId, parent: post, isDeleted: false },
+      relations: ['author'],
+    });
+    if (!comment) {
+      throw new HttpException('Comment Not Found', HttpStatus.NOT_FOUND);
+    }
+    if (userId !== post.author.id && userId !== comment.author.id) {
+      throw new HttpException(
+        'Sorry, you do not have the permission to delete this comment',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+    try {
+      comment.isDeleted = true;
+      await this.postRepository.save(comment);
+    } catch (e) {
+      this.logger.error(
+        `Unable to Delete Comment: ${JSON.stringify(e.message)}`,
+      );
+      throw new HttpException(
+        'Unable to delete Comment',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -483,6 +524,26 @@ export class PostsService {
     }
   }
 
+  async updateComment(
+    commentId: number,
+    commentDto: NewCommentDto,
+  ): Promise<void> {
+    const comment = await this.postRepository.findPostById(commentId);
+    if (!comment) {
+      throw new HttpException('Comment Not Found', HttpStatus.NOT_FOUND);
+    }
+    try {
+      comment.caption = commentDto.message;
+      await this.postRepository.save(comment);
+    } catch (e) {
+      this.logger.error(`Update Comment Failed: ${e.message}`);
+      throw new HttpException(
+        'Unable to Update Comment',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   async remove(postId: number): Promise<void> {
     const post = await this.postRepository.findPostById(postId);
     if (!post) {
@@ -500,7 +561,7 @@ export class PostsService {
     }
   }
 
-  async ensureUserOwnsPost(userId: number, postId: number) {
+  async ensureUserOwnsPost(userId: number, postId: number, isComment = false) {
     const exist = await this.postRepository
       .createQueryBuilder('post')
       .where(`id = ${postId}`)
@@ -508,8 +569,9 @@ export class PostsService {
       .andWhere(`is_deleted = false`)
       .getOne();
     if (!exist) {
+      const type = isComment ? 'Comment' : 'Post';
       throw new HttpException(
-        'User does not have access to Post',
+        `User does not have access to ${type}`,
         HttpStatus.FORBIDDEN,
       );
     }

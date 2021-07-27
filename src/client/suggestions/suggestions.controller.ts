@@ -1,8 +1,8 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { SuggestionsService } from './suggestions.service';
-import { BaseQueryDto } from '../../shared/dtos/base-query.dto';
 import { LoggedInUser } from '../../utils/decorators/logged-in-user.decorator';
 import { SuccessResponseDto } from '../../shared/success-response.dto';
+import { SuggestUserQueryDto } from './dtos/suggest-user-query.dto';
 
 @Controller('suggestions')
 export class SuggestionsController {
@@ -10,7 +10,7 @@ export class SuggestionsController {
 
   @Get('users')
   async getUserSuggestions(
-    @Query() queryInput: BaseQueryDto,
+    @Query() queryInput: SuggestUserQueryDto,
     @LoggedInUser('id') userId: number,
   ): Promise<SuccessResponseDto> {
     const response = await this.suggestionsService.suggestUsers(
