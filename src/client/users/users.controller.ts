@@ -103,6 +103,16 @@ export class UsersController {
     return new SuccessResponseDto('Account Deactivated Successful', response);
   }
 
+  @Get(':username/stans-followers')
+  async getUserStansFollowingCount(
+    @Param('username') username: string,
+  ): Promise<SuccessResponseDto> {
+    const response = await this.usersService.getUserStansFollowingCount(
+      username,
+    );
+    return new SuccessResponseDto('Successful', response);
+  }
+
   ///////////////// User Posts /////////////////
   @Get(':username/posts')
   async getPostsByUser(

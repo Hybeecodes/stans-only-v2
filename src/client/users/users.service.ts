@@ -10,6 +10,7 @@ import { UpdateUserProfileDto } from './dtos/update-user-profile.dto';
 import { UserAccountDetailsDto } from './dtos/user-account-details.dto';
 import { UpdateUserAccountDetailsDto } from './dtos/update-user-account-details.dto';
 import { EntityManager } from 'typeorm';
+import { StansFollowingDto } from './dtos/StansFollowing.dto';
 
 @Injectable()
 export class UsersService {
@@ -45,6 +46,63 @@ export class UsersService {
 
     const profile = new UserProfileDto(user);
     return { ...profile, isSubscribedToUser: Boolean(subscription) };
+  }
+
+  async getUserStansFollowingCount(
+    userName: string,
+  ): Promise<StansFollowingDto> {
+    const user = await this.getUserByUsername(userName);
+    try {
+      const stansCount = await this.getUserStansCount(user.id);
+      const followingCount = await this.getUserFollowingCount(user.id);
+      const stansFollowingDto = new StansFollowingDto();
+      stansFollowingDto.following = followingCount;
+      stansFollowingDto.stans = stansCount;
+      console.log(stansFollowingDto);
+      return stansFollowingDto;
+    } catch (e) {
+      this.logger.error(
+        `Unable to Fetch User Stans and Following Count: ${JSON.stringify(e)}`,
+      );
+      throw new HttpException(
+        'Unable to Fetch User Stans and Following Count',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  private async getUserStansCount(userId: number): Promise<number> {
+    try {
+      const [{ count }] = await this.entityManager.query(
+        `SELECT count(*) as count FROM subscriptions WHERE subscribee_id = ${userId} AND is_deleted = false`,
+      );
+      return count;
+    } catch (e) {
+      this.logger.error(
+        `Unable to Fetch User Stans Count: ${JSON.stringify(e)}`,
+      );
+      throw new HttpException(
+        'Unable to Fetch User Stans Count',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  private async getUserFollowingCount(userId: number): Promise<number> {
+    try {
+      const [{ count }] = await this.entityManager.query(
+        `SELECT COUNT(*) as count FROM subscriptions WHERE subscriber_id = ${userId} AND is_deleted = false`,
+      );
+      return count;
+    } catch (e) {
+      this.logger.error(
+        `Unable to Fetch User Stans Count: ${JSON.stringify(e)}`,
+      );
+      throw new HttpException(
+        'Unable to Fetch User Stans Count',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async findUserById(userId: number): Promise<User> {
