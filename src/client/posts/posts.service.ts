@@ -403,7 +403,7 @@ export class PostsService {
       const { offset, limit } = queryData;
       const { 0: postComments, 1: count } =
         await this.postRepository.findAndCount({
-          where: { parent: post },
+          where: { parent: post, isDeleted: false },
           relations: ['author', 'likes'],
           skip: offset || 0,
           take: limit || 10,

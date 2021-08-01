@@ -9,7 +9,7 @@ export class TypeOrmOptionsService implements TypeOrmOptionsFactory {
   constructor(private readonly config: ConfigService) {}
 
   createTypeOrmOptions(): TypeOrmModuleOptions {
-    Logger.log('Init', this.constructor.name);
+    Logger.log('Initialize Database', this.constructor.name);
 
     return mysql;
   }
