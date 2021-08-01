@@ -324,6 +324,7 @@ export class PostsService {
     try {
       comment.isDeleted = true;
       await this.postRepository.save(comment);
+      this.eventEmitter.emit(Events.ON_DELETE_COMMENT, postId);
     } catch (e) {
       this.logger.error(
         `Unable to Delete Comment: ${JSON.stringify(e.message)}`,
@@ -390,6 +391,18 @@ export class PostsService {
     } catch (e) {
       this.logger.error(
         `incrementPostComments operation Failed: ${JSON.stringify(e.message)}`,
+      );
+    }
+  }
+
+  async decrementPostComments(postId: number): Promise<void> {
+    try {
+      await this.postRepository.query(
+        `UPDATE posts SET comments_count = comments_count-1 WHERE id = ${postId}`,
+      );
+    } catch (e) {
+      this.logger.error(
+        `decrementPostComments operation Failed: ${JSON.stringify(e.message)}`,
       );
     }
   }

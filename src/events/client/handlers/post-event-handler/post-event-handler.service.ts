@@ -20,6 +20,15 @@ export class PostEventHandlerService {
     }
   }
 
+  @OnEvent(Events.ON_DELETE_COMMENT, { async: true })
+  async onDeleteCommentHandler(postId: number): Promise<void> {
+    try {
+      await this.postsService.decrementPostComments(postId);
+    } catch (e) {
+      this.logger.error(`onNewCommentHandler: ${JSON.stringify(e)}`);
+    }
+  }
+
   @OnEvent(Events.ON_NEW_LIKE, { async: true })
   async onNewLikeHandler(postId: number): Promise<void> {
     try {
