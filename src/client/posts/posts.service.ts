@@ -21,6 +21,7 @@ import { EntityManager } from 'typeorm';
 import { NewNotificationDto } from '../notifications/dtos/new-notification.dto';
 import { NotificationType } from '../../entities/notification.entity';
 import { BlockService } from '../block/block.service';
+import { GetPostsQueryDto } from './dto/get-posts-query.dto';
 
 @Injectable()
 export class PostsService {
@@ -118,23 +119,23 @@ export class PostsService {
 
   async findPostsByUsername(
     username: string,
-    queryData: BaseQueryDto,
+    queryData: GetPostsQueryDto,
   ): Promise<{ count: number; posts: PostDto[] }> {
     const user = await this.usersService.getUserByUsername(username);
     if (!user) {
       throw new HttpException('Invalid Username', HttpStatus.BAD_REQUEST);
     }
     try {
-      const { offset, limit } = queryData;
-      const { 0: userPosts, 1: count } = await this.postRepository.findAndCount(
-        {
-          where: { author: user, isDeleted: false, parent: null },
-          relations: ['comments', 'likes', 'author', 'media'],
-          skip: offset || 0,
-          take: limit || 10,
-          order: { createdAt: 'DESC' },
-        },
-      );
+      const postIds = await this.getPostsIdsByCriteria(queryData, user.id);
+      const { 0: userPosts, 1: count } = await this.postRepository
+        .createQueryBuilder('post')
+        .leftJoinAndSelect('post.author', 'author')
+        .leftJoinAndSelect('post.media', 'media')
+        .where('post.is_deleted = false')
+        .andWhere('post.parent IS NULL')
+        .andWhere(`post.author.id = ${user.id}`)
+        .andWhere(`post.id IN (${postIds.join(',')})`)
+        .getManyAndCount();
       return {
         count,
         posts: await this.toPostResponse(userPosts, user.id),
@@ -182,6 +183,45 @@ export class PostsService {
         const po = new PostDto(p);
         return { ...po };
       });
+    }
+  }
+
+  async getPostsIdsByCriteria(
+    queryData: GetPostsQueryDto,
+    userId: number,
+  ): Promise<number[]> {
+    try {
+      const { hasText, hasVideo, hasImage, offset, limit } = queryData;
+      let mediaWhere = 'WHERE true';
+      if (Boolean(hasVideo) && Boolean(hasImage)) {
+        mediaWhere += " AND media_type = 'image' || media_type = 'video'";
+      } else if (Boolean(hasImage)) {
+        mediaWhere += " AND media_type = 'image'";
+      } else if (Boolean(hasVideo)) {
+        mediaWhere += " AND media_type = 'video'";
+      }
+      let parentWhere = '';
+      if (hasText) {
+        parentWhere += " AND caption != '' ";
+      }
+
+      if (Boolean(hasVideo) || Boolean(hasImage)) {
+        parentWhere += ` AND id IN (SELECT post_id FROM post_media ${mediaWhere})`;
+      }
+      const postIds: any[] = await this.entityManager.query(
+        `SELECT id FROM posts WHERE author_id = ${userId} AND is_deleted = false AND parent_id IS NULL ${parentWhere} ORDER BY created_at DESC LIMIT ${
+          limit || 10
+        } OFFSET ${offset || 0}`,
+      );
+      return postIds.map((p) => {
+        return p.id;
+      });
+    } catch (e) {
+      this.logger.error(`getPostsIdsByCriteria Failed: ${e.message}`);
+      throw new HttpException(
+        'Unable to getPostsIdsByCriteria',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 

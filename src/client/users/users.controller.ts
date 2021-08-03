@@ -22,6 +22,7 @@ import { NewReportDto } from '../reports/dtos/new-report.dto';
 import { ReportedType } from '../../entities/report.entity';
 import { ReportsService } from '../reports/reports.service';
 import { BlockService } from '../block/block.service';
+import { GetPostsQueryDto } from '../posts/dto/get-posts-query.dto';
 
 @Controller('users')
 export class UsersController {
@@ -117,7 +118,7 @@ export class UsersController {
   @Get(':username/posts')
   async getPostsByUser(
     @Param('username') username: string,
-    @Query() queryData: BaseQueryDto,
+    @Query() queryData: GetPostsQueryDto,
   ): Promise<SuccessResponseDto> {
     const response = await this.postsService.findPostsByUsername(
       username,
