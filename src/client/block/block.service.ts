@@ -132,4 +132,17 @@ export class BlockService {
       );
     }
   }
+
+  async getBlockedUsersCount(userId: number) {
+    try {
+      const [{ count }] = await this.blockRepository.query(`
+      SELECT COUNT(*) as count FROM blocks WHERE blocker_id = ${userId} AND is_deleted = false
+      `);
+      return Number(count);
+    } catch (e) {
+      this.logger.error(
+        `GET Blocked USERS count Failed: ${JSON.stringify(e.message)}`,
+      );
+    }
+  }
 }

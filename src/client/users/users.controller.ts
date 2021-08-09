@@ -23,6 +23,7 @@ import { ReportedType } from '../../entities/report.entity';
 import { ReportsService } from '../reports/reports.service';
 import { BlockService } from '../block/block.service';
 import { GetPostsQueryDto } from '../posts/dto/get-posts-query.dto';
+import { BookmarksService } from '../bookmarks/bookmarks.service';
 
 @Controller('users')
 export class UsersController {
@@ -32,6 +33,7 @@ export class UsersController {
     private readonly subscriptionService: SubscriptionService,
     private readonly reportsService: ReportsService,
     private readonly blockService: BlockService,
+    private readonly bookmarkService: BookmarksService,
   ) {}
 
   @Get('profile/:username')
@@ -111,6 +113,31 @@ export class UsersController {
     const response = await this.usersService.getUserStansFollowingCount(
       username,
     );
+    return new SuccessResponseDto('Successful', response);
+  }
+
+  @Get('list/count')
+  async getUserListCount(
+    @LoggedInUser('id') userId: number,
+  ): Promise<SuccessResponseDto> {
+    const bookmarkCount = await this.bookmarkService.getUserBookmarksCount(
+      userId,
+    );
+    const blockedUsersCount = await this.blockService.getBlockedUsersCount(
+      userId,
+    );
+
+    const stansCount = await this.subscriptionService.getSubscribersCount(
+      userId,
+    );
+    const subscriptionsCount =
+      await this.subscriptionService.getSubscriptionsCount(userId);
+    const response = {
+      subscriptionsCount,
+      stansCount,
+      blockedUsersCount,
+      bookmarkCount,
+    };
     return new SuccessResponseDto('Successful', response);
   }
 

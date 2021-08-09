@@ -82,4 +82,21 @@ export class BookmarksService {
       );
     }
   }
+
+  async getUserBookmarksCount(userId: number): Promise<number> {
+    try {
+      const [{ count }] = await this.bookmarkRepository.query(`
+      SELECT COUNT(*) as count FROM bookmarks WHERE user_id = ${userId} AND is_deleted = false
+      `);
+      return Number(count);
+    } catch (e) {
+      this.logger.error(
+        `Unable to Get User Bookmarks: ${JSON.stringify(e.message)}`,
+      );
+      throw new HttpException(
+        'Unable to Get User Bookmarks',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }

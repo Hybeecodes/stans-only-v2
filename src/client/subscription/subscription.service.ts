@@ -158,6 +158,32 @@ export class SubscriptionService {
     }
   }
 
+  async getSubscriptionsCount(userId: number) {
+    try {
+      const [{ count }] = await this.subscriptionRepository.query(`
+      SELECT COUNT(*) as count FROM subscriptions WHERE subscriber_id = ${userId} AND is_deleted = false
+      `);
+      return Number(count);
+    } catch (e) {
+      this.logger.error(
+        `GET USER Subscriptions Count Failed: ${JSON.stringify(e.message)}`,
+      );
+    }
+  }
+
+  async getSubscribersCount(userId: number) {
+    try {
+      const [{ count }] = await this.subscriptionRepository.query(`
+      SELECT COUNT(*) as count FROM subscriptions WHERE subscribee_id = ${userId} AND is_deleted = false
+      `);
+      return Number(count);
+    } catch (e) {
+      this.logger.error(
+        `GET USER Subscribers Count Failed: ${JSON.stringify(e.message)}`,
+      );
+    }
+  }
+
   async getUserSubscriptions(
     userName: string,
     queryData: BaseQueryDto,
