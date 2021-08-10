@@ -135,6 +135,7 @@ export class PostsService {
         .andWhere('post.parent IS NULL')
         .andWhere(`post.author.id = ${user.id}`)
         .andWhere(`post.id IN (${postIds.join(',')})`)
+        .orderBy('post.created_at', 'DESC')
         .getManyAndCount();
       return {
         count,
