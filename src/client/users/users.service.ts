@@ -187,6 +187,9 @@ export class UsersService {
     userId: number,
     input: UpdateUserAccountDetailsDto,
   ): Promise<void> {
+    if (input.userName.trim() === '') {
+      throw new HttpException('Invalid Username', HttpStatus.BAD_REQUEST);
+    }
     const user = await this.findUserById(userId);
     try {
       input.subscriptionFee = user.isContentCreator

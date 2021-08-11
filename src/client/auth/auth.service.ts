@@ -216,13 +216,14 @@ export class AuthService {
   ): Promise<{ user: UserDto; token: string }> {
     const { email, firstName, lastName, profilePicUrl } = input;
     let user = await this.userRepository.findUserByEmail(email);
+    const userName = email.split('@')[0];
     if (!user) {
       user = await this.userRepository.createUser({
         email,
         firstName,
         lastName,
         profilePictureUrl: profilePicUrl,
-        userName: `${firstName}${lastName}`,
+        userName,
         password: '',
         isConfirmed: true,
         status: StatusType.ACTIVE,
