@@ -14,6 +14,7 @@ import { BookmarksModule } from './bookmarks/bookmarks.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ReportsModule } from './reports/reports.module';
 import { BlockModule } from './block/block.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { BlockModule } from './block/block.module';
     NotificationsModule,
     ReportsModule,
     BlockModule,
+    ChatModule,
   ],
   providers: [
     {

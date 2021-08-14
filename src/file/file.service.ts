@@ -17,7 +17,7 @@ export class FileService {
     @Inject(Injectables.STORAGE_SERVICE)
     private readonly storageService: StorageService,
   ) {
-    this.logger = new Logger(FileService.name, true);
+    this.logger = new Logger(FileService.name);
   }
 
   generateSignature(

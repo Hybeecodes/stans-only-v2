@@ -11,7 +11,7 @@ export class CloudinaryService implements StorageService {
   private logger: Logger;
 
   constructor(private readonly config: ConfigService) {
-    this.logger = new Logger('CloudinaryService', true);
+    this.logger = new Logger('CloudinaryService');
   }
 
   generateUploadSignature(
