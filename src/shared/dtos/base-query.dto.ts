@@ -1,4 +1,4 @@
-import { IsBooleanString, IsNumberString, IsOptional } from 'class-validator';
+import { IsNumberString, IsOptional } from 'class-validator';
 
 export class BaseQueryDto {
   @IsOptional()
@@ -8,16 +8,4 @@ export class BaseQueryDto {
   @IsOptional()
   @IsNumberString()
   offset: number;
-
-  @IsOptional()
-  @IsBooleanString()
-  hasText: boolean;
-
-  @IsOptional()
-  @IsBooleanString()
-  hasImage: boolean;
-
-  @IsOptional()
-  @IsBooleanString()
-  hasVideo: boolean;
 }
