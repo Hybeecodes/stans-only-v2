@@ -1,4 +1,4 @@
-FROM public.ecr.aws/bitnami/node:12-prod-debian-10
+FROM public.ecr.aws/bitnami/node:14-debian-10
 RUN mkdir -p /app
 WORKDIR /app
 COPY ./package.json ./

@@ -24,9 +24,6 @@
     "migration:run": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:run -f src/typeorm/ormconfig.mysql.ts",
     "migration:revert": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:revert -f src/typeorm/ormconfig.mysql.ts"
   },
-  "engines": {
-    "node": "12.16.3"
-  },
   "dependencies": {
     "@nestjs/common": "8.0.6",
     "@nestjs/config": "^0.6.3",
