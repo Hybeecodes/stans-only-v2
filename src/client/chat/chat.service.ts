@@ -7,6 +7,9 @@ import { NewMessageDto } from './dtos/new-message.dto';
 import { BaseQueryDto } from '../../shared/dtos/base-query.dto';
 import { MessageDto } from './dtos/message.dto';
 import { ConversationDto } from './dtos/conversation.dto';
+import { ChatGateway } from './chat.gateway';
+import { ChatEvents } from './chat-events.enum';
+import { MessageEventPayload } from './dtos/message-event-payload.dto';
 
 @Injectable()
 export class ChatService {
@@ -16,7 +19,8 @@ export class ChatService {
     private readonly conversationRepository: ConversationRepository,
     @InjectRepository(MessageRepository)
     private readonly messageRepository: MessageRepository,
-    private readonly usersService: UsersService, // private readonly chatGateway: ChatGateway,
+    private readonly usersService: UsersService, 
+    private readonly chatGateway: ChatGateway,
   ) {
     this.logger = new Logger(this.constructor.name, { timestamp: true });
   }
@@ -58,7 +62,10 @@ export class ChatService {
         this.conversationRepository.query(
           `UPDATE conversations SET last_message_date = '${new Date().toISOString()}'`,
         );
+        const userRoomName = `userRoom${recipient.userName}`;
+        console.log(userRoomName);
       await Promise.all([saveMessage, updateConversationLastMessageDate]);
+      this.chatGateway.wss.to(userRoomName).emit(ChatEvents.NEW_MESSAGE, new MessageEventPayload(newMessage));
     } catch (e) {
       this.logger.error(`Message Not Sent: ${JSON.stringify(e)}`);
       throw new HttpException(
