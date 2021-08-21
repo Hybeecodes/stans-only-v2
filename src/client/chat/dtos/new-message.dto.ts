@@ -1,4 +1,5 @@
-import { IsDefined, IsOptional } from 'class-validator';
+import { IsDefined, IsEnum, IsOptional, IsNotEmpty, IsArray, IsObject } from 'class-validator';
+import { MediaObject } from 'src/client/posts/dto/create-post.dto';
 
 export class NewMessageDto {
   @IsDefined()
@@ -8,5 +9,8 @@ export class NewMessageDto {
   body: string;
 
   @IsOptional()
-  media: string[];
+  @IsNotEmpty()
+  @IsArray()
+  @IsObject({ each: true })
+  media: MediaObject[];
 }

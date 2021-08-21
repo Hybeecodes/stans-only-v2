@@ -6,10 +6,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { MessageRepository } from '../../repositories/message.repository';
 import { ConversationRepository } from '../../repositories/conversation.repository';
 import { UsersModule } from '../users/users.module';
+import { ChatMediaRepository } from 'src/repositories/chat-media.repository';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([MessageRepository, ConversationRepository]),
+    TypeOrmModule.forFeature([MessageRepository, ConversationRepository, ChatMediaRepository]),
     UsersModule,
   ],
   providers: [ChatGateway, ChatService],

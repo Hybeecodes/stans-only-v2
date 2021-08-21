@@ -10,6 +10,7 @@ import { ConversationDto } from './dtos/conversation.dto';
 import { ChatGateway } from './chat.gateway';
 import { ChatEvents } from './chat-events.enum';
 import { MessageEventPayload } from './dtos/message-event-payload.dto';
+import { ChatMediaRepository } from 'src/repositories/chat-media.repository';
 
 @Injectable()
 export class ChatService {
@@ -17,6 +18,8 @@ export class ChatService {
   constructor(
     @InjectRepository(ConversationRepository)
     private readonly conversationRepository: ConversationRepository,
+    @InjectRepository(ChatMediaRepository)
+    private readonly chatMediaRepository: ChatMediaRepository,
     @InjectRepository(MessageRepository)
     private readonly messageRepository: MessageRepository,
     private readonly usersService: UsersService, 
@@ -53,18 +56,27 @@ export class ChatService {
       }
       const newMessage = this.messageRepository.create({
         conversation,
-        body: body || '',
+        body,
         sender,
         receiver: recipient,
       });
-      const saveMessage = this.messageRepository.save(newMessage);
-      const updateConversationLastMessageDate =
+      const saveMessage = await this.messageRepository.save(newMessage);
+      if (media && media.length > 0) {
+        for (const { url, mediaType } of media) {
+          const postMedia = this.chatMediaRepository.create({
+            message: saveMessage,
+            url,
+            mediaType,
+          });
+          await this.chatMediaRepository.save(postMedia);
+        }
+      }
+      await
         this.conversationRepository.query(
           `UPDATE conversations SET last_message_date = '${new Date().toISOString()}'`,
         );
         const userRoomName = `userRoom${recipient.userName}`;
         console.log(userRoomName);
-      await Promise.all([saveMessage, updateConversationLastMessageDate]);
       this.chatGateway.wss.to(userRoomName).emit(ChatEvents.NEW_MESSAGE, new MessageEventPayload(newMessage));
     } catch (e) {
       this.logger.error(`Message Not Sent: ${JSON.stringify(e)}`);
@@ -91,6 +103,7 @@ export class ChatService {
         .createQueryBuilder('message')
         .leftJoinAndSelect('message.receiver', 'receiver')
         .leftJoinAndSelect('message.sender', 'sender')
+        .leftJoinAndSelect('message.media', 'media')
         .where(`message.conversation_id = '${conversation.id}'`)
         .andWhere('message.is_deleted = false')
         .orderBy('message.created_at', 'DESC')
