@@ -120,14 +120,15 @@ export class ChatService {
   ): Promise<{ count: number; conversations: ConversationDto[] }> {
     try {
       const { offset, limit } = queryData;
+      const conversationIds = await this.getAllUserConversationIds(userId);
       const [conversations, count] = await this.conversationRepository
         .createQueryBuilder('conversation')
-        .leftJoinAndSelect('conversation.participants', 'participants')
+        .leftJoinAndSelect('conversation.participants', 'participant')
+        .where(`conversation.id IN (${conversationIds.length > 0? conversationIds.join(','): 0})`)
         .orderBy('conversation.last_message_date', 'DESC')
         .offset(offset || 0)
         .limit(limit || 10)
         .getManyAndCount();
-      console.log(conversations);
       return {
         count,
         conversations: conversations.map((conversation) => {
@@ -136,6 +137,22 @@ export class ChatService {
       };
     } catch (e) {
       this.logger.error(`Get User Conversations Failed: ${JSON.stringify(e)}`);
+      throw new HttpException(
+        '`Unable to Fetch User Conversations',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async getAllUserConversationIds(userId: number): Promise<number[]>{
+    try {
+      const conversations = await this.conversationRepository.query(`SELECT id FROM conversations c JOIN conversations_users cu ON c.id = cu.conversation_id WHERE cu.user_id = ${userId}`);
+      const conversationIds = conversations.map((conversation) => {
+        return conversation.id;
+      });
+      return conversationIds;
+    } catch (error) {
+      this.logger.error(`getAllUserConversationIds Failed: ${JSON.stringify(error)}`);
       throw new HttpException(
         '`Unable to Fetch User Conversations',
         HttpStatus.INTERNAL_SERVER_ERROR,
