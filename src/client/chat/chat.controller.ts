@@ -17,6 +17,16 @@ import { NewMessageDto } from './dtos/new-message.dto';
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
+  @Get('unread/count')
+  async getUserUnreadMessagesCount(
+    @LoggedInUser('id') userId: number,
+  ): Promise<SuccessResponseDto> {
+    const response = await this.chatService.getUserUnreadMessageCount(
+      userId,
+    );
+    return new SuccessResponseDto('Successful', response);
+  }
+
   @Get('conversations')
   async getUserConversations(
     @Query() queryData: BaseQueryDto,

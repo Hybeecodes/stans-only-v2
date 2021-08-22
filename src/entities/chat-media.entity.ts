@@ -10,7 +10,7 @@ import {
 import { MediaTypes } from '../client/enums/image-types.enum';
 import { Message } from './message.entity';
 
-@Entity('post_media')
+@Entity('chat_media')
 export class ChatMedia {
   @PrimaryGeneratedColumn('increment')
   id: number;

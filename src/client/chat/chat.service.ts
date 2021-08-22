@@ -211,4 +211,17 @@ export class ChatService {
       );
     }
   }
+
+  async getUserUnreadMessageCount(userId: number): Promise<number> {
+    try {
+      const [{count}] = await this.messageRepository.query(`SELECT COUNT(*) AS count FROM messages WHERE receiver_id = ${userId} AND is_read is false`);
+      return count as number;
+    } catch (error) {
+      this.logger.error(`getUserUnreadMessageCount Failed: ${JSON.stringify(error)}`);
+      throw new HttpException(
+        '`Unable to Fetch Unread Messages',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }
