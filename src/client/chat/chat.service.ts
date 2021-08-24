@@ -22,7 +22,7 @@ export class ChatService {
     private readonly chatMediaRepository: ChatMediaRepository,
     @InjectRepository(MessageRepository)
     private readonly messageRepository: MessageRepository,
-    private readonly usersService: UsersService, 
+    private readonly usersService: UsersService,
     private readonly chatGateway: ChatGateway,
   ) {
     this.logger = new Logger(this.constructor.name, { timestamp: true });
@@ -71,13 +71,14 @@ export class ChatService {
           await this.chatMediaRepository.save(postMedia);
         }
       }
-      await
-        this.conversationRepository.query(
-          `UPDATE conversations SET last_message_date = '${new Date().toISOString()}'`,
-        );
-        const userRoomName = `userRoom${recipient.userName}`;
-        console.log(userRoomName);
-      this.chatGateway.wss.to(userRoomName).emit(ChatEvents.NEW_MESSAGE, new MessageEventPayload(newMessage));
+      await this.conversationRepository.query(
+        `UPDATE conversations SET last_message_date = '${new Date().toISOString()}'`,
+      );
+      const userRoomName = `userRoom${recipient.userName}`;
+      console.log(userRoomName);
+      this.chatGateway.wss
+        .to(userRoomName)
+        .emit(ChatEvents.NEW_MESSAGE, new MessageEventPayload(newMessage));
     } catch (e) {
       this.logger.error(`Message Not Sent: ${JSON.stringify(e)}`);
       throw new HttpException(
@@ -137,7 +138,11 @@ export class ChatService {
       const [conversations, count] = await this.conversationRepository
         .createQueryBuilder('conversation')
         .leftJoinAndSelect('conversation.participants', 'participant')
-        .where(`conversation.id IN (${conversationIds.length > 0? conversationIds.join(','): 0})`)
+        .where(
+          `conversation.id IN (${
+            conversationIds.length > 0 ? conversationIds.join(',') : 0
+          })`,
+        )
         .orderBy('conversation.last_message_date', 'DESC')
         .offset(offset || 0)
         .limit(limit || 10)
@@ -157,15 +162,19 @@ export class ChatService {
     }
   }
 
-  async getAllUserConversationIds(userId: number): Promise<number[]>{
+  async getAllUserConversationIds(userId: number): Promise<number[]> {
     try {
-      const conversations = await this.conversationRepository.query(`SELECT id FROM conversations c JOIN conversations_users cu ON c.id = cu.conversation_id WHERE cu.user_id = ${userId}`);
+      const conversations = await this.conversationRepository.query(
+        `SELECT id FROM conversations c JOIN conversations_users cu ON c.id = cu.conversation_id WHERE cu.user_id = ${userId}`,
+      );
       const conversationIds = conversations.map((conversation) => {
         return conversation.id;
       });
       return conversationIds;
     } catch (error) {
-      this.logger.error(`getAllUserConversationIds Failed: ${JSON.stringify(error)}`);
+      this.logger.error(
+        `getAllUserConversationIds Failed: ${JSON.stringify(error)}`,
+      );
       throw new HttpException(
         '`Unable to Fetch User Conversations',
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -214,10 +223,14 @@ export class ChatService {
 
   async getUserUnreadMessageCount(userId: number): Promise<number> {
     try {
-      const [{count}] = await this.messageRepository.query(`SELECT COUNT(*) AS count FROM messages WHERE receiver_id = ${userId} AND is_read is false`);
+      const [{ count }] = await this.messageRepository.query(
+        `SELECT COUNT(*) AS count FROM messages WHERE receiver_id = ${userId} AND is_read is false`,
+      );
       return count as number;
     } catch (error) {
-      this.logger.error(`getUserUnreadMessageCount Failed: ${JSON.stringify(error)}`);
+      this.logger.error(
+        `getUserUnreadMessageCount Failed: ${JSON.stringify(error)}`,
+      );
       throw new HttpException(
         '`Unable to Fetch Unread Messages',
         HttpStatus.INTERNAL_SERVER_ERROR,
