@@ -1,5 +1,13 @@
 import { BaseEntity } from './base.entity';
-import { Column, ManyToMany, OneToMany, JoinTable, Entity } from 'typeorm';
+import {
+  Column,
+  ManyToMany,
+  OneToMany,
+  JoinTable,
+  Entity,
+  OneToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Message } from './message.entity';
 import { User } from './user.entity';
 
@@ -25,6 +33,7 @@ export class Conversation extends BaseEntity {
   @OneToMany(() => Message, (message) => message.conversation)
   messages: Message[];
 
-  @Column('datetime')
-  lastMessageDate: Date;
+  @OneToOne(() => Message)
+  @JoinColumn()
+  lastMessage: Message;
 }

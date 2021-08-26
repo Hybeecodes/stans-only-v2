@@ -72,10 +72,9 @@ export class ChatService {
         }
       }
       await this.conversationRepository.query(
-        `UPDATE conversations SET last_message_date = '${new Date().toISOString()}'`,
+        `UPDATE conversations SET last_message_id = ${saveMessage.id} WHERE conversation_id = '${conversationId}'`,
       );
       const userRoomName = `userRoom${recipient.userName}`;
-      console.log(userRoomName);
       this.chatGateway.wss
         .to(userRoomName)
         .emit(ChatEvents.NEW_MESSAGE, new MessageEventPayload(newMessage));
@@ -107,7 +106,7 @@ export class ChatService {
         .leftJoinAndSelect('message.media', 'media')
         .where(`message.conversation_id = '${conversation.id}'`)
         .andWhere('message.is_deleted = false')
-        .orderBy('message.created_at', 'DESC')
+        .orderBy('message.created_at', 'ASC')
         .offset(offset || 0)
         .limit(limit || 10)
         .getManyAndCount();
@@ -138,6 +137,7 @@ export class ChatService {
       const [conversations, count] = await this.conversationRepository
         .createQueryBuilder('conversation')
         .leftJoinAndSelect('conversation.participants', 'participant')
+        .leftJoinAndSelect('conversation.lastMessage', 'lastMessage')
         .where(
           `conversation.id IN (${
             conversationIds.length > 0 ? conversationIds.join(',') : 0
@@ -167,10 +167,9 @@ export class ChatService {
       const conversations = await this.conversationRepository.query(
         `SELECT id FROM conversations c JOIN conversations_users cu ON c.id = cu.conversation_id WHERE cu.user_id = ${userId}`,
       );
-      const conversationIds = conversations.map((conversation) => {
+      return conversations.map((conversation) => {
         return conversation.id;
       });
-      return conversationIds;
     } catch (error) {
       this.logger.error(
         `getAllUserConversationIds Failed: ${JSON.stringify(error)}`,

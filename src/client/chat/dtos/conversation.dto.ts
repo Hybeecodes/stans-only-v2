@@ -4,17 +4,27 @@ export class ConversationDto {
   public conversationId: string;
   public conversationType: string;
   public participants: ShortUserDto[];
-  public lastMessageDate: Date;
+  public lastMessage: {
+    id: number;
+    body: string;
+    createdAt: Date;
+  };
 
   constructor(conversation: ConversationDto) {
+    console.log(conversation.lastMessage);
     this.conversationId = conversation.conversationId;
     this.conversationType = conversation.conversationType;
-    console.log(new ShortUserDto(conversation.participants[0]));
     this.participants =
       conversation.participants &&
       conversation.participants.map((participant) => {
         return new ShortUserDto(participant);
       });
-    this.lastMessageDate = conversation.lastMessageDate;
+    this.lastMessage = conversation.lastMessage
+      ? {
+          id: conversation.lastMessage.id,
+          body: conversation.lastMessage.body,
+          createdAt: conversation.lastMessage.createdAt,
+        }
+      : null;
   }
 }
