@@ -143,6 +143,7 @@ export class ChatService {
             conversationIds.length > 0 ? conversationIds.join(',') : 0
           })`,
         )
+        .andWhere('conversation.is_deleted = false')
         .orderBy('lastMessage.created_at', 'DESC')
         .offset(offset || 0)
         .limit(limit || 10)
