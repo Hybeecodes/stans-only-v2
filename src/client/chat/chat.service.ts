@@ -106,7 +106,7 @@ export class ChatService {
         .leftJoinAndSelect('message.media', 'media')
         .where(`message.conversation_id = '${conversation.id}'`)
         .andWhere('message.is_deleted = false')
-        .orderBy('message.created_at', 'ASC')
+        .orderBy('message.created_at', 'DESC')
         .offset(offset || 0)
         .limit(limit || 10)
         .getManyAndCount();
