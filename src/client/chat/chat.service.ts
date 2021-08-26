@@ -143,7 +143,7 @@ export class ChatService {
             conversationIds.length > 0 ? conversationIds.join(',') : 0
           })`,
         )
-        .orderBy('conversation.last_message_date', 'DESC')
+        .orderBy('lastMessage.created_at', 'DESC')
         .offset(offset || 0)
         .limit(limit || 10)
         .getManyAndCount();
