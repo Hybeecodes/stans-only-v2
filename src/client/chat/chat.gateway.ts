@@ -5,34 +5,54 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
-  WsResponse,
 } from '@nestjs/websockets';
 import { Logger } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
+import { ChatEvents } from './chat-events.enum';
+import { ConnectedUserDto } from './dtos/connected-user.dto';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class ChatGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
-  private readonly logger: Logger = new Logger(this.constructor.name);
+  private readonly logger: Logger;
+  private connectedUsers: ConnectedUserDto[];
+
+  constructor() {
+    this.logger = new Logger(this.constructor.name);
+  }
 
   @WebSocketServer()
   wss: Server;
+  @SubscribeMessage(ChatEvents.ADD_USER)
+  addUser(client: Socket, userId: number): void {
+    const newConnectedUser = new ConnectedUserDto(userId, client.id);
+    const exists = this.connectedUsers.find((user) => {
+      return user.userId === userId;
+    });
+    if (!exists) this.connectedUsers.push(newConnectedUser);
+  }
 
-  @SubscribeMessage('message')
-  handleMessage(client: Socket, text: string): WsResponse<string> {
-    return { event: 'message', data: 'Hello world!' };
+  @SubscribeMessage(ChatEvents.SEND_MESSAGE)
+  sendMessage(client: Socket, payload: any): void {
+    const { receiverId, ...rest } = payload;
+    const { socketId } = this.connectedUsers.find((user) => {
+      return user.userId === receiverId;
+    });
+    this.wss.to(socketId).emit(ChatEvents.NEW_MESSAGE, { ...rest });
   }
 
   afterInit(server: any): any {
-    this.logger.log('Initialized');
+    this.logger.log('Initialized', server);
   }
 
-  handleConnection(client: Socket, ...args: any[]): any {
+  handleConnection(client: Socket): any {
     this.logger.log(` Client Connected: ${client.id}`);
   }
 
   handleDisconnect(client: Socket): any {
-    this.logger.log(`Client Disconnected: ${client.id}`);
+    this.connectedUsers = this.connectedUsers.filter((user) => {
+      return user.socketId !== client.id;
+    });
   }
 }

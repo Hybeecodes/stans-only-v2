@@ -3,16 +3,28 @@ import { Message } from '../../../entities/message.entity';
 export class MessageEventPayload {
   public id: number;
   public body: string;
-  public senderId: number;
+  public sender: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    userName: string;
+    profilePictureUrl: string;
+  };
   public recipientId: number;
   public media: { url: string; mediaType: string }[];
-  public coversationId: number;
+  public conversationId: number;
   public isRead: boolean;
   public createdAt: Date;
   constructor(message: Message) {
     this.id = message.id;
     this.body = message.body;
-    this.senderId = message.sender.id;
+    this.sender = {
+      id: message.sender.id,
+      firstName: message.sender.firstName,
+      lastName: message.sender.lastName,
+      userName: message.sender.userName,
+      profilePictureUrl: message.sender.profilePictureUrl,
+    };
     this.recipientId = message.receiver.id;
     this.media =
       message.media &&
@@ -22,7 +34,7 @@ export class MessageEventPayload {
           mediaType: m.mediaType,
         };
       });
-    this.coversationId = message.conversation.id;
+    this.conversationId = message.conversation.id;
     this.isRead = message.isRead;
     this.createdAt = message.createdAt;
   }
