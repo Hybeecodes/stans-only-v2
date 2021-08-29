@@ -32,15 +32,18 @@ export class ChatGateway
       return user.userId === userId;
     });
     if (!exists) this.connectedUsers.push(newConnectedUser);
+    this.logger.log(`User Added: ${userId}`);
   }
 
   @SubscribeMessage(ChatEvents.SEND_MESSAGE)
   sendMessage(client: Socket, payload: any): void {
+    this.logger.log(`Send Message Event Received: ${JSON.stringify(payload)}`);
     const { receiverId, ...rest } = payload;
     const { socketId } = this.connectedUsers.find((user) => {
       return user.userId === receiverId;
     });
     this.wss.to(socketId).emit(ChatEvents.NEW_MESSAGE, { ...rest });
+    this.logger.log(`New Message Event Emitted: ${JSON.stringify(rest)}`);
   }
 
   afterInit(server: any): any {
