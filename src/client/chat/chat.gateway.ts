@@ -40,6 +40,7 @@ export class ChatGateway
   stansOnly(client: Socket, users: any) {
     this.logger.log('StansOnly Event');
     console.log(users);
+    client.emit('new-message', 'MyMessageObject');
   }
 
   @SubscribeMessage(ChatEvents.SEND_MESSAGE)

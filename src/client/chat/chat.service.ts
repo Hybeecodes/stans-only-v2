@@ -9,6 +9,7 @@ import { MessageDto } from './dtos/message.dto';
 import { ConversationDto } from './dtos/conversation.dto';
 import { ChatMediaRepository } from 'src/repositories/chat-media.repository';
 import { MessageEventPayload } from './dtos/message-event-payload.dto';
+import { Conversation } from '../../entities/conversation.entity';
 
 @Injectable()
 export class ChatService {
@@ -28,7 +29,6 @@ export class ChatService {
   async newMessage(
     newMessageDto: NewMessageDto,
     userId: number,
-    conversationId: string,
   ): Promise<MessageEventPayload> {
     const { body, media, recipientId } = newMessageDto;
     if (!body && (!media || media.length === 0)) {
@@ -40,11 +40,18 @@ export class ChatService {
     const sender = await this.usersService.findUserById(userId);
     const recipient = await this.usersService.findUserById(recipientId);
     try {
-      let conversation = await this.conversationRepository.findOne({
-        where: { conversationId, isDeleted: false },
-      });
-      if (!conversation) {
+      const { conversationId } = await this.conversationRepository.query(`
+        SELECT DISTINCT conversation_id FROM conversations_users
+WHERE user_id = 52 || user_id = 56 GROUP BY conversation_id HAVING count(*) >1
+      `);
+      let conversation: Conversation;
+      if (conversationId) {
+        conversation = await this.conversationRepository.findOne({
+          where: { conversationId, isDeleted: false },
+        });
+      } else if (!conversationId) {
         // create conversation
+        const conversationId = `${sender.id}_${recipient.id}`;
         conversation = this.conversationRepository.create({
           conversationId,
           participants: [recipient, sender],

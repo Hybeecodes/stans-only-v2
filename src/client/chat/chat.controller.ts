@@ -21,9 +21,7 @@ export class ChatController {
   async getUserUnreadMessagesCount(
     @LoggedInUser('id') userId: number,
   ): Promise<SuccessResponseDto> {
-    const response = await this.chatService.getUserUnreadMessageCount(
-      userId,
-    );
+    const response = await this.chatService.getUserUnreadMessageCount(userId);
     return new SuccessResponseDto('Successful', response);
   }
 
@@ -62,17 +60,12 @@ export class ChatController {
     return new SuccessResponseDto('Successful', response);
   }
 
-  @Post('conversations/:conversationId/messages')
+  @Post('messages')
   async newConversationMessages(
     @Body() body: NewMessageDto,
     @LoggedInUser('id') userId: number,
-    @Param('conversationId') conversationId: string,
   ): Promise<SuccessResponseDto> {
-    const response = await this.chatService.newMessage(
-      body,
-      userId,
-      conversationId,
-    );
+    const response = await this.chatService.newMessage(body, userId);
     return new SuccessResponseDto('Message Sent Successfully', response);
   }
 
