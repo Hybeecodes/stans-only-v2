@@ -18,13 +18,13 @@ export class ChatGateway
   private readonly logger: Logger;
   private connectedUsers: ConnectedUserDto[];
 
+  @WebSocketServer()
+  wss: Server;
+
   constructor() {
     this.logger = new Logger(this.constructor.name);
     this.connectedUsers = [];
   }
-
-  @WebSocketServer()
-  wss: Server;
   @SubscribeMessage(ChatEvents.ADD_USER)
   addUser(client: Socket, userId: number): void {
     const newConnectedUser = new ConnectedUserDto(userId, client.id);
@@ -33,6 +33,7 @@ export class ChatGateway
     });
     if (!exists) this.connectedUsers.push(newConnectedUser);
     this.logger.log(`User Added: ${userId}`);
+    client.emit('test', 'Hello World');
   }
 
   @SubscribeMessage(ChatEvents.SEND_MESSAGE)
