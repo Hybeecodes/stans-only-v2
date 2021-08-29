@@ -33,7 +33,7 @@ export class ChatGateway
     });
     if (!exists) this.connectedUsers.push(newConnectedUser);
     this.logger.log(`User Added: ${userId}`);
-    client.emit('test', 'Hello World');
+    client.emit('test', 'How Far Lucky');
   }
 
   @SubscribeMessage(ChatEvents.SEND_MESSAGE)
