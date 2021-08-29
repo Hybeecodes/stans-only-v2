@@ -20,6 +20,7 @@ export class ChatGateway
 
   constructor() {
     this.logger = new Logger(this.constructor.name);
+    this.connectedUsers = [];
   }
 
   @WebSocketServer()
