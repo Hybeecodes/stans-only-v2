@@ -36,6 +36,12 @@ export class ChatGateway
     client.emit('test', 'How Far Lucky');
   }
 
+  @SubscribeMessage('stans-only')
+  stansOnly(client: Socket, users: any) {
+    this.logger.log('StansOnly Event');
+    console.log(users);
+  }
+
   @SubscribeMessage(ChatEvents.SEND_MESSAGE)
   sendMessage(client: Socket, payload: any): void {
     this.logger.log(`Send Message Event Received: ${JSON.stringify(payload)}`);
