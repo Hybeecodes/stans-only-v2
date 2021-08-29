@@ -21,7 +21,7 @@ async function bootstrap() {
   app.setGlobalPrefix(`/api/${SERVICE_NAME}/v1`);
   // app.use(`/api/${SERVICE_NAME}/v1/some_route`, limiter); // limit number of requests for certain endpoints (comment out or remove if unnecessary)
   app.use(helmet());
-  app.enableCors({ origin: '*', credentials: true });
+  app.enableCors();
   app.use(compression());
   app.useGlobalPipes(new ValidationPipe());
   const options = new DocumentBuilder()
