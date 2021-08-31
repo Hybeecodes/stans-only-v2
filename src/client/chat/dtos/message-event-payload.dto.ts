@@ -16,7 +16,6 @@ export class MessageEventPayload {
   public isRead: boolean;
   public createdAt: Date;
   constructor(message: Message, conversationId: string) {
-    console.log(message);
     this.id = message.id;
     this.body = message.body;
     this.sender = {
