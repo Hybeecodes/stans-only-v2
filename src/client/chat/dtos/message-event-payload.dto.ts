@@ -12,10 +12,10 @@ export class MessageEventPayload {
   };
   public recipientId: number;
   public media: { url: string; mediaType: string }[];
-  public conversationId: number;
+  public conversationId: string;
   public isRead: boolean;
   public createdAt: Date;
-  constructor(message: Message) {
+  constructor(message: Message, conversationId: string) {
     this.id = message.id;
     this.body = message.body;
     this.sender = {
@@ -34,7 +34,7 @@ export class MessageEventPayload {
           mediaType: m.mediaType,
         };
       });
-    this.conversationId = message.conversation.id;
+    this.conversationId = conversationId;
     this.isRead = message.isRead;
     this.createdAt = message.createdAt;
   }

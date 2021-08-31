@@ -40,9 +40,9 @@ export class ChatService {
     const sender = await this.usersService.findUserById(userId);
     const recipient = await this.usersService.findUserById(recipientId);
     try {
-      const { conversationId } = await this.conversationRepository.query(`
-        SELECT DISTINCT conversation_id FROM conversations_users
-WHERE user_id = 52 || user_id = 56 GROUP BY conversation_id HAVING count(*) >1
+      const [{ conversationId }] = await this.conversationRepository.query(`
+        SELECT DISTINCT conversation_id as conversationId FROM conversations_users
+WHERE user_id = ${recipientId} || user_id = ${userId} GROUP BY conversation_id HAVING count(*) >1
       `);
       let conversation: Conversation;
       if (conversationId) {
@@ -78,7 +78,7 @@ WHERE user_id = 52 || user_id = 56 GROUP BY conversation_id HAVING count(*) >1
       await this.conversationRepository.query(
         `UPDATE conversations SET last_message_id = ${saveMessage.id} WHERE conversation_id = '${conversationId}'`,
       );
-      return new MessageEventPayload(saveMessage);
+      return new MessageEventPayload(saveMessage, conversationId);
     } catch (e) {
       this.logger.error(`Message Not Sent: ${JSON.stringify(e)}`);
       throw new HttpException(
