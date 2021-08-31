@@ -40,11 +40,14 @@ export class ChatService {
     const sender = await this.usersService.findUserById(userId);
     const recipient = await this.usersService.findUserById(recipientId);
     try {
-      let [{ conversationId }] = await this.conversationRepository.query(`
+      const response = await this.conversationRepository.query(`
         SELECT DISTINCT conversation_id as conversationId FROM conversations_users
 WHERE user_id = ${userId} || user_id = ${recipientId} GROUP BY conversationId HAVING count(*) >1
       `);
       let conversation: Conversation;
+      let conversationId =
+        response.length > 0 ? response[0].conversationId : null;
+      console.log(response);
       if (conversationId) {
         conversation = await this.conversationRepository.findOne({
           where: { id: conversationId, isDeleted: false },
@@ -75,7 +78,6 @@ WHERE user_id = ${userId} || user_id = ${recipientId} GROUP BY conversationId HA
           await this.chatMediaRepository.save(postMedia);
         }
       }
-      console.log(conversation);
       await this.conversationRepository.query(
         `UPDATE conversations SET last_message_id = ${saveMessage.id} WHERE conversation_id = '${conversation.id}'`,
       );
