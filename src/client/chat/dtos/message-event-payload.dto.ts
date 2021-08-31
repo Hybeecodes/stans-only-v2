@@ -11,6 +11,7 @@ export class MessageEventPayload {
     profilePictureUrl: string;
   };
   public recipientId: number;
+  public senderId: number;
   public media: { url: string; mediaType: string }[];
   public conversationId: string;
   public isRead: boolean;
@@ -26,6 +27,7 @@ export class MessageEventPayload {
       profilePictureUrl: message.sender.profilePictureUrl,
     };
     this.recipientId = message.receiver.id;
+    this.senderId = message.sender.id;
     this.media =
       message.media &&
       message.media.map((m) => {
