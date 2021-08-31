@@ -79,7 +79,7 @@ WHERE user_id = ${userId} || user_id = ${recipientId} GROUP BY conversationId HA
         }
       }
       await this.conversationRepository.query(
-        `UPDATE conversations SET last_message_id = ${saveMessage.id} WHERE conversation_id = '${conversation.id}'`,
+        `UPDATE conversations SET last_message_id = ${saveMessage.id} WHERE id = ${conversation.id}`,
       );
       return new MessageEventPayload(saveMessage, conversationId);
     } catch (e) {
