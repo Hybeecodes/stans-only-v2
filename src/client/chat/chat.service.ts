@@ -40,18 +40,18 @@ export class ChatService {
     const sender = await this.usersService.findUserById(userId);
     const recipient = await this.usersService.findUserById(recipientId);
     try {
-      const [{ conversationId }] = await this.conversationRepository.query(`
+      let [{ conversationId }] = await this.conversationRepository.query(`
         SELECT DISTINCT conversation_id as conversationId FROM conversations_users
-WHERE user_id = ${recipientId} || user_id = ${userId} GROUP BY conversation_id HAVING count(*) >1
+WHERE user_id = ${userId} || user_id = ${recipientId} GROUP BY conversationId HAVING count(*) >1
       `);
       let conversation: Conversation;
       if (conversationId) {
         conversation = await this.conversationRepository.findOne({
-          where: { conversationId, isDeleted: false },
+          where: { id: conversationId, isDeleted: false },
         });
-      } else if (!conversationId) {
+      } else {
         // create conversation
-        const conversationId = `${sender.id}_${recipient.id}`;
+        conversationId = `${sender.id}_${recipient.id}`;
         conversation = this.conversationRepository.create({
           conversationId,
           participants: [recipient, sender],
@@ -75,8 +75,9 @@ WHERE user_id = ${recipientId} || user_id = ${userId} GROUP BY conversation_id H
           await this.chatMediaRepository.save(postMedia);
         }
       }
+      console.log(conversation);
       await this.conversationRepository.query(
-        `UPDATE conversations SET last_message_id = ${saveMessage.id} WHERE conversation_id = '${conversationId}'`,
+        `UPDATE conversations SET last_message_id = ${saveMessage.id} WHERE conversation_id = '${conversation.id}'`,
       );
       return new MessageEventPayload(saveMessage, conversationId);
     } catch (e) {
