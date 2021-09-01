@@ -47,7 +47,6 @@ WHERE user_id = ${userId} || user_id = ${recipientId} GROUP BY conversationId HA
       let conversation: Conversation;
       let conversationId =
         response.length > 0 ? response[0].conversationId : null;
-      console.log(response);
       if (conversationId) {
         conversation = await this.conversationRepository.findOne({
           where: { id: conversationId, isDeleted: false },
@@ -56,7 +55,6 @@ WHERE user_id = ${userId} || user_id = ${recipientId} GROUP BY conversationId HA
         // create conversation
         conversationId = `${sender.id}_${recipient.id}`;
         conversation = this.conversationRepository.create({
-          conversationId,
           participants: [recipient, sender],
         });
         await this.conversationRepository.save(conversation);
@@ -92,11 +90,11 @@ WHERE user_id = ${userId} || user_id = ${recipientId} GROUP BY conversationId HA
   }
 
   async getMesssagesByConversationId(
-    conversationId: string,
+    conversationId: number,
     queryData: BaseQueryDto,
   ): Promise<{ count: number; messages: MessageDto[] }> {
     const conversation = await this.conversationRepository.findOne({
-      where: { conversationId, isDeleted: false },
+      where: { id: conversationId, isDeleted: false },
     });
     if (!conversation) {
       throw new HttpException('Conversation Not Found', HttpStatus.NOT_FOUND);
@@ -186,9 +184,9 @@ WHERE user_id = ${userId} || user_id = ${recipientId} GROUP BY conversationId HA
     }
   }
 
-  async readConversationMessages(conversationId: string): Promise<void> {
+  async readConversationMessages(conversationId: number): Promise<void> {
     const conversation = await this.conversationRepository.findOne({
-      where: { conversationId, isDeleted: false },
+      where: { id: conversationId, isDeleted: false },
     });
     if (!conversation) {
       throw new HttpException('Conversation Not Found', HttpStatus.NOT_FOUND);

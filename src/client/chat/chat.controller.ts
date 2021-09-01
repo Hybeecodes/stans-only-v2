@@ -40,7 +40,7 @@ export class ChatController {
   @Get('conversations/:conversationId/messages')
   async getConversationMessages(
     @Query() queryData: BaseQueryDto,
-    @Param('conversationId') conversationId: string,
+    @Param('conversationId') conversationId: number,
   ): Promise<SuccessResponseDto> {
     const response = await this.chatService.getMesssagesByConversationId(
       conversationId,
@@ -52,7 +52,7 @@ export class ChatController {
   @Post('conversations/:conversationId/messages/read')
   async readConversationMessages(
     @Query() queryData: BaseQueryDto,
-    @Param('conversationId') conversationId: string,
+    @Param('conversationId') conversationId: number,
   ): Promise<SuccessResponseDto> {
     const response = await this.chatService.readConversationMessages(
       conversationId,

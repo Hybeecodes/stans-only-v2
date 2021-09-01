@@ -1,7 +1,8 @@
 import { ShortUserDto } from '../../users/dtos/short-user.dto';
+import { Conversation } from '../../../entities/conversation.entity';
 
 export class ConversationDto {
-  public conversationId: string;
+  public conversationId: number;
   public conversationType: string;
   public participants: ShortUserDto[];
   public lastMessage: {
@@ -10,9 +11,8 @@ export class ConversationDto {
     createdAt: Date;
   };
 
-  constructor(conversation: ConversationDto) {
-    console.log(conversation.lastMessage);
-    this.conversationId = conversation.conversationId;
+  constructor(conversation: Conversation) {
+    this.conversationId = conversation.id;
     this.conversationType = conversation.conversationType;
     this.participants =
       conversation.participants &&

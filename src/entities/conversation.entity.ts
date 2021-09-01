@@ -17,9 +17,6 @@ export enum ConversationType {
 
 @Entity()
 export class Conversation extends BaseEntity {
-  @Column('varchar', { unique: true })
-  conversationId: string;
-
   @Column('enum', {
     enum: ConversationType,
     default: ConversationType.ONE_TO_ONE,
