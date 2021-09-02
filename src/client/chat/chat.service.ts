@@ -31,6 +31,15 @@ export class ChatService {
     userId: number,
   ): Promise<MessageEventPayload> {
     const { body, media, recipientId } = newMessageDto;
+    if (userId === recipientId) {
+      this.logger.error(
+        `You can not send yourself a message: receiver${recipientId}`,
+      );
+      throw new HttpException(
+        'You can not send yourself a message',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     if (!body && (!media || media.length === 0)) {
       throw new HttpException(
         'Invalid Message Request: No Body',
@@ -42,10 +51,10 @@ export class ChatService {
     try {
       const response = await this.conversationRepository.query(`
         SELECT DISTINCT conversation_id as conversationId FROM conversations_users
-WHERE user_id = ${userId} || user_id = ${recipientId} GROUP BY conversationId HAVING count(*) >1
+WHERE user_id = ${userId} || user_id = ${recipientId} GROUP BY conversationId HAVING count(*) = 2
       `);
       let conversation: Conversation;
-      let conversationId =
+      const conversationId =
         response.length > 0 ? response[0].conversationId : null;
       if (conversationId) {
         conversation = await this.conversationRepository.findOne({
@@ -53,7 +62,6 @@ WHERE user_id = ${userId} || user_id = ${recipientId} GROUP BY conversationId HA
         });
       } else {
         // create conversation
-        conversationId = `${sender.id}_${recipient.id}`;
         conversation = this.conversationRepository.create({
           participants: [recipient, sender],
         });
