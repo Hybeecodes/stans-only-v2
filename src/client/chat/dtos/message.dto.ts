@@ -9,7 +9,7 @@ export class MessageDto {
   public isRead: boolean;
   public createdAt: Date;
   constructor(message: Message) {
-    this.id = message.id; 
+    this.id = message.id;
     this.body = message.body;
     this.senderId = message.sender.id;
     this.recipientId = message.receiver.id;

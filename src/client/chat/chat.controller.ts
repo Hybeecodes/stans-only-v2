@@ -69,6 +69,20 @@ export class ChatController {
     return new SuccessResponseDto('Message Sent Successfully', response);
   }
 
+  @Get(':userName/messages')
+  async getConversationWithUser(
+    @Query() query: BaseQueryDto,
+    @LoggedInUser('id') userId: number,
+    @Param('userName') userName: string,
+  ): Promise<SuccessResponseDto> {
+    const response = await this.chatService.getConversationWithUser(
+      userId,
+      userName,
+      query,
+    );
+    return new SuccessResponseDto('Message Retrieved Successfully', response);
+  }
+
   @Delete('conversations/:conversationId/messages/:messageId')
   async deleteConversationMessages(
     @Param('messageId') messageId: number,

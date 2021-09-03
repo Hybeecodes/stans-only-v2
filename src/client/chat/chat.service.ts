@@ -114,7 +114,7 @@ WHERE user_id = ${userId} || user_id = ${recipientId} GROUP BY conversationId HA
         .leftJoinAndSelect('message.receiver', 'receiver')
         .leftJoinAndSelect('message.sender', 'sender')
         .leftJoinAndSelect('message.media', 'media')
-        .where(`message.conversation_id = '${conversation.id}'`)
+        .where(`message.conversation_id = ${conversation.id}`)
         .andWhere('message.is_deleted = false')
         .orderBy('message.created_at', 'DESC')
         .offset(offset || 0)
@@ -243,6 +243,46 @@ WHERE user_id = ${userId} || user_id = ${recipientId} GROUP BY conversationId HA
       );
       throw new HttpException(
         '`Unable to Fetch Unread Messages',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async getConversationWithUser(
+    userId: number,
+    userName: string,
+    queryData: BaseQueryDto,
+  ): Promise<{ count: number; messages: MessageDto[] }> {
+    const user2 = await this.usersService.getUserByUsername(userName);
+    if (!user2) {
+      throw new HttpException('Invalid Username', HttpStatus.BAD_REQUEST);
+    }
+    try {
+      const { offset, limit } = queryData;
+      const [messages, count] = await this.messageRepository
+        .createQueryBuilder('message')
+        .leftJoinAndSelect('message.receiver', 'receiver')
+        .leftJoinAndSelect('message.sender', 'sender')
+        .leftJoinAndSelect('message.media', 'media')
+        .where(`message.sender_id = ${userId}`)
+        .where(`message.sender_id = ${user2.id}`)
+        .andWhere('message.is_deleted = false')
+        .orderBy('message.created_at', 'DESC')
+        .offset(offset || 0)
+        .limit(limit || 10)
+        .getManyAndCount();
+      return {
+        count,
+        messages: messages.map((message) => {
+          return new MessageDto(message);
+        }),
+      };
+    } catch (e) {
+      this.logger.error(
+        `getConversationWithUser Failed: ${JSON.stringify(e.message)}`,
+      );
+      throw new HttpException(
+        'Unable to Fetch Conversation',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
