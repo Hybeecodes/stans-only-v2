@@ -144,6 +144,7 @@ WHERE user_id = ${userId} || user_id = ${recipientId} GROUP BY conversationId HA
     try {
       const { offset, limit } = queryData;
       const conversationIds = await this.getAllUserConversationIds(userId);
+      console.log('conversations', conversationIds);
       const [conversations, count] = await this.conversationRepository
         .createQueryBuilder('conversation')
         .leftJoinAndSelect('conversation.participants', 'participant')

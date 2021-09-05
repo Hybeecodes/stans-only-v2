@@ -8,6 +8,8 @@ export class ConversationDto {
   public lastMessage: {
     id: number;
     body: string;
+    senderId: number;
+    receiverId: number;
     isRead: boolean;
     createdAt: Date;
   };
@@ -24,6 +26,8 @@ export class ConversationDto {
       ? {
           id: conversation.lastMessage.id,
           body: conversation.lastMessage.body,
+          senderId: conversation.lastMessage.senderId,
+          receiverId: conversation.lastMessage.receiverId,
           createdAt: conversation.lastMessage.createdAt,
           isRead: conversation.lastMessage.isRead,
         }

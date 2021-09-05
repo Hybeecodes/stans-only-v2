@@ -6,12 +6,20 @@ import { ChatMedia } from './chat-media.entity';
 
 @Entity()
 export class Message extends BaseEntity {
+  // add column explicitly here
+  @Column({ name: 'sender_id' })
+  senderId: number;
+
+  // add column explicitly here
+  @Column({ name: 'receiver_id' })
+  receiverId: number;
+
   @ManyToOne(() => User)
-  @JoinColumn()
+  @JoinColumn({ name: 'sender_id' })
   sender: User;
 
   @ManyToOne(() => User)
-  @JoinColumn()
+  @JoinColumn({ name: 'receiver_id' })
   receiver: User;
 
   @Column('varchar', { length: 200, nullable: true })
