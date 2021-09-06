@@ -44,6 +44,15 @@ export class PostsService {
     this.logger = new Logger(PostsService.name);
   }
   async create(userId: number, createPostDto: CreatePostDto): Promise<boolean> {
+    if (
+      !createPostDto.caption &&
+      (!createPostDto.media || createPostDto.media.length === 0)
+    ) {
+      throw new HttpException(
+        'Invalid Post Request: No Body',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     const user = await this.usersService.findUserById(userId);
     const { media, caption } = createPostDto;
     if (media.length > 5) {
