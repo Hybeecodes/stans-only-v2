@@ -22,7 +22,7 @@ export class PostRepository extends Repository<Post> {
   async findPostById(postId: number): Promise<Post> {
     return this.findOne({
       where: { id: postId, isDeleted: false },
-      relations: ['author'],
+      relations: ['author', 'parent'],
     });
   }
 

@@ -419,7 +419,8 @@ export class PostsService {
       const notification = new NewNotificationDto();
       notification.senderId = authorId;
       notification.recipientId = post.author.id;
-      notification.message = `${author.userName} liked your post`;
+      const entity = post.parent ? 'Comment' : 'Post';
+      notification.message = `${author.userName} liked your ${entity}`;
       notification.type = NotificationType.LIKE;
       notification.meta = { postId };
       this.eventEmitter.emit(Events.ON_NEW_LIKE, postId);
