@@ -336,7 +336,7 @@ export class PostsService {
       notification.recipientId = post.author.id;
       notification.message = `${author.userName} commented on your post`;
       notification.type = NotificationType.COMMENT;
-      notification.meta = { postId };
+      notification.meta = { postId, commentId: newComment.id };
       this.eventEmitter.emit(Events.NEW_NOTIFICATION, notification);
     } catch (e) {
       this.logger.error(
