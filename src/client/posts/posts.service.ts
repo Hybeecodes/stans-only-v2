@@ -386,15 +386,18 @@ export class PostsService {
     }
   }
 
-  async unLikePost(postId: number, authorId: number): Promise<void> {
+  async unLikePost(postId: number, authorId: number): Promise<string> {
     const post = await this.postRepository.findPostById(postId);
     if (!post) {
       throw new HttpException('Post Not Found', HttpStatus.NOT_FOUND);
     }
+    const isComment = !!post.parent;
+    const entity = isComment ? 'Comment' : 'Post';
     const author = await this.usersService.findUserById(authorId);
     try {
       await this.likeRepository.delete({ post, author });
       this.eventEmitter.emit(Events.ON_UNLIKE, postId);
+      return `${entity} Unliked Successfully`;
     } catch (e) {
       this.logger.error(`Unable to Unlike Post: ${JSON.stringify(e.message)}`);
       throw new HttpException(
@@ -404,7 +407,7 @@ export class PostsService {
     }
   }
 
-  async addPostLike(postId: number, authorId: number): Promise<void> {
+  async addPostLike(postId: number, authorId: number): Promise<string> {
     const post = await this.postRepository.findPostById(postId);
     if (!post) {
       throw new HttpException('Post Not Found', HttpStatus.NOT_FOUND);
@@ -434,6 +437,7 @@ export class PostsService {
         : postNotificationMeta;
       this.eventEmitter.emit(Events.ON_NEW_LIKE, postId);
       this.eventEmitter.emit(Events.NEW_NOTIFICATION, notification);
+      return `${entity} Liked Successfully`;
     } catch (e) {
       this.logger.error(`Unable to Like Post: ${JSON.stringify(e.message)}`);
       throw new HttpException(
