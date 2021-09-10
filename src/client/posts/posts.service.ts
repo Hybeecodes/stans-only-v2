@@ -425,7 +425,7 @@ export class PostsService {
       notification.type = NotificationType.LIKE;
       const commentNotificationMeta = {
         commentId: postId,
-        postId: post.parent.id,
+        postId: isComment ? post.parent.id : null,
         isComment,
       };
       const postNotificationMeta = { postId, isComment };
