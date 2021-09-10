@@ -7,7 +7,7 @@ export class NotificationDto {
   public type: string;
   public url: string;
   public createdDate: Date;
-  public meta: { postId: number };
+  public meta: any;
   public sender: {
     id: number;
     firstName: string;
@@ -22,10 +22,7 @@ export class NotificationDto {
     this.type = notification.type;
     this.createdDate = notification.createdAt;
     if (notification.meta) {
-      const parsedMeta = JSON.parse(notification.meta);
-      this.meta = {
-        postId: parsedMeta.postId,
-      };
+      this.meta = JSON.parse(notification.meta);
     }
     this.sender = {
       id: notification.sender.id,
