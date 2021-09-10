@@ -97,7 +97,7 @@ export class PostsController {
     @Param('postId') postId: number,
   ) {
     const response = await this.postsService.unLikePost(postId, userId);
-    return new SuccessResponseDto('Post Unliked Successfully', response);
+    return new SuccessResponseDto(response, null);
   }
 
   @Post(':postId/likes')
@@ -106,7 +106,7 @@ export class PostsController {
     @Param('postId') postId: number,
   ) {
     const response = await this.postsService.addPostLike(postId, userId);
-    return new SuccessResponseDto('New Like Added Successfully', response);
+    return new SuccessResponseDto(response, null);
   }
 
   @Get(':postId/comments')
