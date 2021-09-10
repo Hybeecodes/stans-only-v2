@@ -409,6 +409,7 @@ export class PostsService {
     if (!post) {
       throw new HttpException('Post Not Found', HttpStatus.NOT_FOUND);
     }
+    const isComment = !!post.parent;
     const author = await this.usersService.findUserById(authorId);
     try {
       const newLike = this.likeRepository.create({
@@ -419,10 +420,18 @@ export class PostsService {
       const notification = new NewNotificationDto();
       notification.senderId = authorId;
       notification.recipientId = post.author.id;
-      const entity = post.parent ? 'Comment' : 'Post';
+      const entity = isComment ? 'Comment' : 'Post';
       notification.message = `${author.userName} liked your ${entity}`;
       notification.type = NotificationType.LIKE;
-      notification.meta = { postId };
+      const commentNotificationMeta = {
+        commentId: postId,
+        postId: post.parent.id,
+        isComment,
+      };
+      const postNotificationMeta = { postId, isComment };
+      notification.meta = isComment
+        ? commentNotificationMeta
+        : postNotificationMeta;
       this.eventEmitter.emit(Events.ON_NEW_LIKE, postId);
       this.eventEmitter.emit(Events.NEW_NOTIFICATION, notification);
     } catch (e) {
