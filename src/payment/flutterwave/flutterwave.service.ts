@@ -96,8 +96,8 @@ export class FlutterwaveService implements IPaymentService {
   async verifyBvn(payload: VerifyBvnDto): Promise<boolean> {
     try {
       return await this.flutterwaveClient.Misc.bvn(payload);
-    } catch (e) {
-      this.logger.error(`VerifyBVN Failed: ${JSON.stringify(e)}`);
+    } catch (err) {
+      this.logger.error(`VerifyBVN Failed: ${JSON.stringify(err)}`);
       throw new HttpException(
         'BVN verification Failed',
         HttpStatus.INTERNAL_SERVER_ERROR,
