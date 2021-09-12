@@ -1,3 +1,4 @@
 export enum Injectables {
   STORAGE_SERVICE = 'STORAGE_SERVICE',
+  PAYMENT_SERVICE = 'PAYMENT_SERVICE',
 }

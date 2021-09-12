@@ -4,10 +4,16 @@ import { SubscriptionService } from './subscription.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SubscriptionRepository } from '../../repositories/subscription.repository';
 import { UsersModule } from '../users/users.module';
+import { WalletHistoryRepository } from '../../repositories/wallet-history.repository';
+import { WalletLedgerRepository } from '../../repositories/wallet-ledger.repository';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([SubscriptionRepository]),
+    TypeOrmModule.forFeature([
+      SubscriptionRepository,
+      WalletHistoryRepository,
+      WalletLedgerRepository,
+    ]),
     forwardRef(() => UsersModule),
   ],
   controllers: [SubscriptionController],

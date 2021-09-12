@@ -13,6 +13,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { HttpErrorFilter } from './shared/http-error-filter';
 import { FileModule } from './file/file.module';
+import { PaymentModule } from './payment/payment.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { FileModule } from './file/file.module';
     NotificationModule,
     ClientModule,
     FileModule,
+    PaymentModule,
   ],
   controllers: [AppController],
   providers: [

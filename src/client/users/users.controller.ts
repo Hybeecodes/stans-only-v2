@@ -54,6 +54,15 @@ export class UsersController {
     return new SuccessResponseDto('Profile Update Successful', response);
   }
 
+  @Get('wallet/balance')
+  async getWalletBalance(@LoggedInUser('id') userId: number) {
+    const response = await this.usersService.getUserWalletBalance(userId);
+    return new SuccessResponseDto(
+      'Wallet Balance Retrieved Successfully',
+      response,
+    );
+  }
+
   @Get('settings/notification')
   async getUserNotificationSettings(@LoggedInUser('id') userId: number) {
     const response = await this.usersService.getUserNotificationSettings(

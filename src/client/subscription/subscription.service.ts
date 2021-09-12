@@ -1,8 +1,8 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Connection } from 'typeorm';
 import { SubscriptionRepository } from '../../repositories/subscription.repository';
 import { UsersService } from '../users/users.service';
-import { Subscription } from '../../entities/subscription.entity';
 import { SubscriptionDto } from './dto/subscription.dto';
 import { BaseQueryDto } from '../../shared/dtos/base-query.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -10,6 +10,9 @@ import { Events } from '../../events/client/events.enum';
 import { SubscribersDto } from './dto/subscribers.dto';
 import { NewNotificationDto } from '../notifications/dtos/new-notification.dto';
 import { NotificationType } from '../../entities/notification.entity';
+import { WalletHistoryRepository } from '../../repositories/wallet-history.repository';
+import { WalletLedgerRepository } from '../../repositories/wallet-ledger.repository';
+import { TransactionTypes } from '../../entities/transaction.entity';
 
 @Injectable()
 export class SubscriptionService {
@@ -17,8 +20,13 @@ export class SubscriptionService {
   constructor(
     @InjectRepository(SubscriptionRepository)
     private readonly subscriptionRepository: SubscriptionRepository,
+    @InjectRepository(WalletHistoryRepository)
+    private readonly walletHistoryRepository: WalletHistoryRepository,
+    @InjectRepository(WalletLedgerRepository)
+    private readonly walletLedgerRepository: WalletLedgerRepository,
     private readonly usersService: UsersService,
     private readonly eventEmitter: EventEmitter2,
+    private connection: Connection,
   ) {
     this.logger = new Logger(SubscriptionService.name);
   }
@@ -36,31 +44,74 @@ export class SubscriptionService {
         HttpStatus.FORBIDDEN,
       );
     const subscriber = await this.usersService.findUserById(subscriberId);
+    if (
+      Number(subscriber.availableBalance) < Number(subscribee.subscriptionFee)
+    ) {
+      this.logger.error(
+        `Insufficient wallet balance, please top-up your wallet`,
+      );
+      throw new HttpException(
+        'Insufficient wallet balance, please top-up your wallet',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const queryRunner = this.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    console.log('starting transaction');
+    const subscriptionFee = subscribee.subscriptionFee;
     try {
       const subscription = await this.subscriptionRepository.findOne({
         where: { subscribee, subscriber },
       });
+      ///// Subscriber Updates
+      const updateAvailableBalance = queryRunner.query(
+        `UPDATE users SET available_balance = available_balance - ${subscriptionFee} WHERE id = ${subscriber.id}`,
+      );
+      const saveSubscriberWalletHistory = queryRunner.query(
+        `INSERT INTO wallet_history (user_id, amount, type) 
+                VALUES (${subscriber.id}, ${subscriptionFee}, '${TransactionTypes.SUBSCRIPTION}')`,
+      );
+      const promises: any[] = [
+        updateAvailableBalance,
+        saveSubscriberWalletHistory,
+      ];
+
+      /// Subscribee Updates
+      const updatePendingBalance = queryRunner.query(
+        `UPDATE users SET balance_on_hold =  balance_on_hold + ${subscriptionFee} WHERE id = ${subscribee.id}`,
+      );
+      const saveLedgerRecord = queryRunner.query(
+        `INSERT INTO wallet_ledger (user_id, amount) 
+                VALUES (${subscribee.id}, ${subscriptionFee})`,
+      );
+      const saveSubscribeeWalletHistory = queryRunner.query(
+        `INSERT INTO wallet_history (user_id, amount, type) 
+                VALUES (${subscribee.id}, ${subscriptionFee}, '${TransactionTypes.SUBSCRIPTION}')`,
+      );
+      promises.push(saveLedgerRecord);
+      promises.push(updatePendingBalance);
+      promises.push(saveSubscribeeWalletHistory);
+
       if (subscription) {
         if (subscription.isDeleted) {
-          await this.subscriptionRepository
-            .createQueryBuilder('subscription')
-            .update(Subscription)
-            .set({
-              isDeleted: false,
-            })
-            .where(
-              'subscriber_id = :subscriberId AND subscribee_id = :subscribeeId',
-              { subscriberId, subscribeeId: subscribee.id },
-            )
-            .execute();
+          const updateSubscription =
+            queryRunner.query(`UPDATE subscriptions SET is_deleted = false
+            AND expiry_date = ${new Date()} WHERE id = ${subscription.id}`);
+          promises.push(updateSubscription);
         }
       } else {
-        const newSubscription = this.subscriptionRepository.create({
-          subscribee,
-          subscriber,
-        });
-        await this.subscriptionRepository.save(newSubscription);
+        const saveSubscription = queryRunner.query(
+          `INSERT INTO subscriptions (subscribee_id, subscriber_id, expiry_date) VALUES (${
+            subscribee.id
+          }, ${subscriber.id}, ${new Date()})`,
+        );
+        promises.push(saveSubscription);
       }
+
+      await Promise.all(promises);
+      console.log('Committing transaction');
+      await queryRunner.commitTransaction();
       this.eventEmitter.emit(Events.ON_NEW_SUBSCRIPTION, subscribee.id);
 
       const notification = new NewNotificationDto();
@@ -68,9 +119,11 @@ export class SubscriptionService {
       notification.recipientId = subscribee.id;
       notification.message = `${subscriber.userName} Subscribed to you`;
       notification.type = NotificationType.SUBSCRIPTION;
-
+      // TODO:: Send Email to Content Creator about the operation
       this.eventEmitter.emit(Events.NEW_NOTIFICATION, notification);
     } catch (e) {
+      console.log('something is here');
+      await queryRunner.rollbackTransaction();
       this.logger.error(
         `Create Subscription Failed: ${JSON.stringify(e.message)}`,
       );
@@ -78,6 +131,9 @@ export class SubscriptionService {
         'Subscription Failed',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    } finally {
+      console.log('Releasing transaction');
+      await queryRunner.release();
     }
   }
 

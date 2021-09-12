@@ -95,6 +95,20 @@ export class User {
   })
   subscriptionType: string;
 
+  @Column('decimal', {
+    precision: 12,
+    scale: 2,
+    default: '0.0',
+  })
+  availableBalance: number;
+
+  @Column('decimal', {
+    precision: 12,
+    scale: 2,
+    default: '0.0',
+  })
+  balanceOnHold: number;
+
   @Column('boolean', { nullable: false, default: false })
   isDeleted: boolean;
 

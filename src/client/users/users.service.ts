@@ -11,6 +11,7 @@ import { UserAccountDetailsDto } from './dtos/user-account-details.dto';
 import { UpdateUserAccountDetailsDto } from './dtos/update-user-account-details.dto';
 import { EntityManager } from 'typeorm';
 import { StansFollowingDto } from './dtos/StansFollowing.dto';
+import { WalletBalanceDto } from './dtos/wallet-balance.dto';
 
 @Injectable()
 export class UsersService {
@@ -257,6 +258,99 @@ export class UsersService {
     } catch (e) {
       this.logger.error(
         `incrementBlockedUsers operation Failed: ${JSON.stringify(e.message)}`,
+      );
+    }
+  }
+
+  async getUserWalletBalance(userId: number): Promise<WalletBalanceDto> {
+    const user = await this.findUserById(userId);
+    try {
+      return new WalletBalanceDto(user);
+    } catch (e) {
+      this.logger.error(
+        `Unable to Retrieve User Wallet Balance: ${JSON.stringify(e.message)}`,
+      );
+      throw new HttpException(
+        'Unable to Retrieve User Wallet Balance',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async incrementAvailableBalance(
+    userId: number,
+    amount: number,
+  ): Promise<void> {
+    try {
+      await this.userRepository.query(
+        `UPDATE users SET available_balance = available_balance + ${amount} WHERE id = ${userId}`,
+      );
+    } catch (e) {
+      this.logger.error(
+        `incrementAvailableBalance operation Failed: ${JSON.stringify(
+          e.message,
+        )}`,
+      );
+      throw new HttpException(
+        'An Error Occurred',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async decrementAvailableBalance(
+    userId: number,
+    amount: number,
+  ): Promise<void> {
+    try {
+      await this.userRepository.query(
+        `UPDATE users SET available_balance = available_balance - ${amount} WHERE id = ${userId}`,
+      );
+    } catch (e) {
+      this.logger.error(
+        `decrementAvailableBalance operation Failed: ${JSON.stringify(
+          e.message,
+        )}`,
+      );
+      throw new HttpException(
+        'An Error Occurred',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async incrementPendingBalance(userId: number, amount: number): Promise<void> {
+    try {
+      await this.userRepository.query(
+        `UPDATE users SET balance_on_hold =  balance_on_hold + ${amount} WHERE id = ${userId}`,
+      );
+    } catch (e) {
+      this.logger.error(
+        `incrementPendingBalance operation Failed: ${JSON.stringify(
+          e.message,
+        )}`,
+      );
+      throw new HttpException(
+        'An Error Occurred',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async decrementPendingBalance(userId: number, amount: number): Promise<void> {
+    try {
+      await this.userRepository.query(
+        `UPDATE users SET balance_on_hold =  balance_on_hold - ${amount} WHERE id = ${userId}`,
+      );
+    } catch (e) {
+      this.logger.error(
+        `decrementPendingBalance operation Failed: ${JSON.stringify(
+          e.message,
+        )}`,
+      );
+      throw new HttpException(
+        'An Error Occurred',
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
