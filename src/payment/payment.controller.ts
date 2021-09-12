@@ -1,8 +1,10 @@
 import {
+  Body,
   Controller,
   Get,
   Inject,
   Param,
+  Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -13,6 +15,7 @@ import { SuccessResponseDto } from '../shared/success-response.dto';
 import { FetchBanksQueryDto } from './dtos/fetch-banks-query.dto';
 import { UserAuthGuard } from '../utils/guards/user-auth.guard';
 import { LoggedInUser } from '../utils/decorators/logged-in-user.decorator';
+import { ResolveAccountDto } from './dtos/resolve-account.dto';
 
 @Controller('payment')
 export class PaymentController {
@@ -25,7 +28,13 @@ export class PaymentController {
   async verifyBvn(@Param('bvn') bvn: string) {
     const payload = new VerifyBvnDto(parseInt(bvn));
     const response = await this.paymentService.verifyBvn(payload);
-    return new SuccessResponseDto('Bvn Verification Successfully', response);
+    return new SuccessResponseDto('Bvn Verification Successful', response);
+  }
+
+  @Post('account/resolve')
+  async resolveAccount(@Body() payload: ResolveAccountDto) {
+    const response = await this.paymentService.resolveAccount(payload);
+    return new SuccessResponseDto('Account Resolved Successfully', response);
   }
 
   @UseGuards(UserAuthGuard)

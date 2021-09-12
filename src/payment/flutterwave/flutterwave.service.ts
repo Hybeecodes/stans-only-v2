@@ -15,6 +15,9 @@ import {
 } from '../../entities/transaction.entity';
 import { UsersService } from '../../client/users/users.service';
 import { WalletHistoryRepository } from '../../repositories/wallet-history.repository';
+import { ResolveAccountResponseDto } from '../dtos/resolve-account-response.dto';
+import { IResolveAccountRequest } from '../interfaces/resolve-account-request.interface';
+import { ResolveAccountDto } from '../dtos/resolve-account.dto';
 
 @Injectable()
 export class FlutterwaveService implements IPaymentService {
@@ -35,6 +38,33 @@ export class FlutterwaveService implements IPaymentService {
       this.configService.get<string>('FLUTTERWAVE_PUBLIC_KEY'),
       this.configService.get<string>('FLUTTERWAVE_SECRET_KEY'),
     );
+  }
+
+  async resolveAccount(
+    payload: ResolveAccountDto,
+  ): Promise<ResolveAccountResponseDto> {
+    try {
+      const requestPayload: IResolveAccountRequest = {
+        account_number: payload.accountNumber,
+        account_bank: payload.bankCode,
+      };
+      const response = await this.flutterwaveClient.Misc.verify_Account(
+        requestPayload,
+      );
+      if (response.status !== 'success') {
+        throw new HttpException(
+          response.message || 'Account Resolution Failed',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      return new ResolveAccountResponseDto(response.data);
+    } catch (e) {
+      this.logger.error(`Account Resolution Failed: ${JSON.stringify(e)}`);
+      throw new HttpException(
+        e.message || 'Account Resolution Failed',
+        e.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async verifyPayment(payload: any, userId: number): Promise<any> {
