@@ -1,5 +1,5 @@
 import { BaseEntity } from './base.entity';
-import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { User } from './user.entity';
 
 export enum LedgerStatus {
@@ -12,7 +12,7 @@ export class WalletLedger extends BaseEntity {
   @Column({ name: 'user_id' })
   userId: number;
 
-  @OneToOne(() => User)
+  @ManyToOne(() => User)
   @JoinColumn({ name: 'user_id' })
   user: User;
 

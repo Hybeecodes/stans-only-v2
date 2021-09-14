@@ -15,6 +15,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { ReportsModule } from './reports/reports.module';
 import { BlockModule } from './block/block.module';
 import { ChatModule } from './chat/chat.module';
+import { BankModule } from './bank/bank.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { ChatModule } from './chat/chat.module';
     ReportsModule,
     BlockModule,
     ChatModule,
+    BankModule,
   ],
   providers: [
     {
