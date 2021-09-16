@@ -258,6 +258,13 @@ WHERE user_id = ${userId} || user_id = ${recipientId} GROUP BY conversationId HA
     if (!user2) {
       throw new HttpException('Invalid Username', HttpStatus.BAD_REQUEST);
     }
+    const response = await this.conversationRepository.query(`
+        SELECT DISTINCT conversation_id as conversationId FROM conversations_users
+WHERE user_id = ${userId} || user_id = ${user2.id} GROUP BY conversationId HAVING count(*) = 2
+      `);
+    const conversationId =
+      response.length > 0 ? response[0].conversationId : null;
+    if (!conversationId) return { count: 0, messages: [] };
     try {
       const { offset, limit } = queryData;
       const [messages, count] = await this.messageRepository
@@ -265,8 +272,7 @@ WHERE user_id = ${userId} || user_id = ${recipientId} GROUP BY conversationId HA
         .leftJoinAndSelect('message.receiver', 'receiver')
         .leftJoinAndSelect('message.sender', 'sender')
         .leftJoinAndSelect('message.media', 'media')
-        .where(`message.sender_id = ${userId}`)
-        .where(`message.sender_id = ${user2.id}`)
+        .where(`message.conversation_id = ${conversationId}`)
         .andWhere('message.is_deleted = false')
         .orderBy('message.created_at', 'DESC')
         .offset(offset || 0)
