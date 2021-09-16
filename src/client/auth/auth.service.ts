@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UserRepository } from '../../repositories/user.repository';
 import { RegisterDto } from './dtos/register.dto';
 import { ErrorMessages } from '../../shared/constants/error-messages.enum';
-import { User, UserDto, UserLoginResponse } from '../../entities/user.entity';
+import { UserDto, UserLoginResponse } from '../../entities/user.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Events } from '../../events/client/events.enum';
 import { VerifyEmailDto } from './dtos/verify-email.dto';
@@ -32,7 +32,7 @@ export class AuthService {
     this.logger = new Logger(AuthService.name);
   }
 
-  async register(input: RegisterDto): Promise<User> {
+  async register(input: RegisterDto): Promise<UserDto> {
     const { email, userName } = input;
     const checkEmail = await this.userRepository.findUserByEmail(email);
     if (checkEmail) {
@@ -54,7 +54,7 @@ export class AuthService {
     try {
       const user = await this.userRepository.createUser(input);
       this.eventEmitter.emit(Events.ON_REGISTRATION, user);
-      return user;
+      return user.toUserResponse();
     } catch (e) {
       this.logger.error(`Registration Failed: ${JSON.stringify(e.message)}`);
       throw new HttpException(
