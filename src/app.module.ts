@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { EmailService } from './shared/services/notification/email/email.service';
+import { NotificationService } from './shared/services/notification/notification.service';
 import { NotificationModule } from './shared/services/notification/notification.module';
 import { TypeOrmOptionsService } from './typeorm/typeorm-options.service';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
@@ -50,7 +50,6 @@ import { PaymentModule } from './payment/payment.module';
   controllers: [AppController],
   providers: [
     AppService,
-    EmailService,
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,

@@ -33,7 +33,7 @@ export class AuthController {
   }
 
   @SkipAuth()
-  @Post('email/verify')
+  @Post('email_sendgrid/verify')
   async verifyEmail(
     @Body() input: VerifyEmailDto,
   ): Promise<SuccessResponseDto> {
@@ -42,7 +42,7 @@ export class AuthController {
   }
 
   @SkipAuth()
-  @Post('email/verify/resend')
+  @Post('email_sendgrid/verify/resend')
   async resendEmailVerification(
     @Body() input: ResendVerificationDto,
   ): Promise<SuccessResponseDto> {

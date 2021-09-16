@@ -1,18 +1,12 @@
 import { Module } from '@nestjs/common';
-import { SendGridModule } from '@ntegral/nestjs-sendgrid';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
-import { EmailService } from './email/email.service';
+import { NotificationService } from './notification.service';
+import { Injectables } from '../../constants/injectables.enum';
+import { SesService } from './email/ses/ses.service';
 
 @Module({
   imports: [
-    SendGridModule.forRootAsync({
-      imports: [ConfigService],
-      useFactory: async (config: ConfigService) => ({
-        apiKey: config.get<string>('SENDGRID_API_KEY'),
-      }),
-      inject: [ConfigService],
-    }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -25,7 +19,10 @@ import { EmailService } from './email/email.service';
       }),
     }),
   ],
-  providers: [EmailService],
-  exports: [EmailService],
+  providers: [
+    NotificationService,
+    { provide: Injectables.EMAIL_SERVICE, useClass: SesService },
+  ],
+  exports: [NotificationService],
 })
 export class NotificationModule {}
