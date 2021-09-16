@@ -3,5 +3,5 @@ export interface SendEmailPayload {
   recipients: string[];
   message?: string;
   template?: any;
-  templateData?: Object;
+  templateData?: Record<string, unknown>;
 }

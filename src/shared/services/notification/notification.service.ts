@@ -1,5 +1,4 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { InjectSendGrid, SendGridService } from '@ntegral/nestjs-sendgrid';
 import * as handlebars from 'handlebars';
 import * as fs from 'fs';
 import { JwtService } from '@nestjs/jwt';
@@ -28,8 +27,6 @@ export class NotificationService {
 
   async sendNewUserEmail(user: User): Promise<void> {
     try {
-      // read the handle templates files
-      const template = await NotificationService.getTemplate('newUser');
       // send the email_sendgrid with
       const { email, firstName } = user;
       const token = this.jwtService.sign({ email });
@@ -44,7 +41,7 @@ export class NotificationService {
             'https://res.cloudinary.com/stansonlycloud/image/upload/v1600877280/stansonly/Stansoly_new_blue_2x_1_pxgmhr.png',
           url,
         },
-        template,
+        template: 'newUser',
       });
       // await this.sendGridService.send({
       //   to: email,
@@ -60,7 +57,6 @@ export class NotificationService {
 
   async sendForgotPasswordEmail(user: User): Promise<void> {
     try {
-      const template = await NotificationService.getTemplate('forgotpassword');
       const { email, firstName, resetToken } = user;
       const resetHash = this.jwtService.sign({
         email,

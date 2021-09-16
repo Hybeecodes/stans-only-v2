@@ -1,17 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as AWS from 'aws-sdk';
-import SESEmailClient from 'ses-email-client';
 
 import { EmailService } from '../interface/email-service.interface';
 import { SendEmailPayload } from '../interface/send-email-payload.interface';
 import { ConfigService } from '@nestjs/config';
+import * as fs from 'fs';
+import Handlebars from 'handlebars';
 
 @Injectable()
 export class SesService implements EmailService {
   private readonly logger: Logger;
 
   private readonly SES: AWS.SES;
-  private readonly sesClient: SESEmailClient;
 
   constructor(private readonly configService: ConfigService) {
     this.logger = new Logger(SesService.name);
@@ -21,27 +21,50 @@ export class SesService implements EmailService {
       accessKeyId: this.configService.get('AWS_ACCESS_KEY'),
       secretAccessKey: this.configService.get('AWS_SECRET_KEY'),
     });
+  }
 
-    this.sesClient = new SESEmailClient({
-      region: this.configService.get('AWS_REGION'),
-      accessKeyId: this.configService.get('AWS_ACCESS_KEY'),
-      secretAccessKey: this.configService.get('AWS_SECRET_KEY'),
-      templateLanguage: 'handlebars', // 'mjml', 'ejs'
-      production: false, // or process.env.NODE_ENV = production is as setting to true
-      tmpltCacheSize: 50, // template cache size default = 100
-      attCacheSize: 50, // attachment cache size default = 100
-    });
+  generateBody(
+    templateFileName: string,
+    templateData: Record<string, unknown>,
+  ): string {
+    try {
+      const templateSource = fs
+        .readFileSync(`templates/${templateFileName}.hbs`)
+        .toString();
+      const template = Handlebars.compile(templateSource);
+      return template(templateData);
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   async sendMail(sendEmailPayload: SendEmailPayload): Promise<void> {
     try {
-      const { MessageId } = await this.sesClient.send({
-        to: sendEmailPayload.recipients.toString(),
-        from: 'noreply@stansonly.com',
-        subject: sendEmailPayload.subject,
-        template: sendEmailPayload.template,
-        data: sendEmailPayload.templateData,
-      });
+      const { template, templateData, message, recipients, subject } =
+        sendEmailPayload;
+      const data =
+        template && templateData
+          ? this.generateBody(template, templateData)
+          : message;
+      const { MessageId } = await this.SES.sendEmail({
+        Destination: {
+          ToAddresses: recipients,
+        },
+        Message: {
+          /* required */
+          Body: {
+            Html: {
+              Charset: 'UTF-8',
+              Data: data,
+            },
+          },
+          Subject: {
+            Charset: 'UTF-8',
+            Data: subject,
+          },
+        },
+        Source: 'noreply@stansonly.com' /* required */,
+      }).promise();
       this.logger.log(`Email Send Successfully ===> ${MessageId}`);
     } catch (error) {
       this.logger.error(`Send Mail Failed: ${JSON.stringify(error)}`);
