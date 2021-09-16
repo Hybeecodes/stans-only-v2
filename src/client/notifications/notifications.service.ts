@@ -119,14 +119,16 @@ export class NotificationsService {
     queryInput: NotificationQueryDto,
   ): Promise<{ count: number; notifications: NotificationDto[] }> {
     const recipient = await this.usersService.findUserById(userId);
-    const { limit, offset, status } = queryInput;
+    const { limit, offset, status, type } = queryInput;
     try {
       const whereClause: {
         recipient?: User;
         isDeleted: boolean;
         status?: string;
+        type?: string;
       } = { recipient, isDeleted: false };
       if (status) whereClause.status = status;
+      if (type) whereClause.type = type;
       const { 0: notifications, 1: count } =
         await this.notificationRepository.findAndCount({
           where: { ...whereClause },
