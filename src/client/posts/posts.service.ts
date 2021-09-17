@@ -143,7 +143,7 @@ export class PostsService {
         .where('post.is_deleted = false')
         .andWhere('post.parent IS NULL')
         .andWhere(`post.author.id = ${user.id}`)
-        .andWhere(`post.id IN (${postIds.join(',')})`)
+        .andWhere(`post.id IN (${postIds.length > 0 ? postIds.join(',') : 0})`)
         .orderBy('post.created_at', 'DESC')
         .getManyAndCount();
       return {
