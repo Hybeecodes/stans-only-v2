@@ -97,14 +97,16 @@ export class SubscriptionService {
         if (subscription.isDeleted) {
           const updateSubscription =
             queryRunner.query(`UPDATE subscriptions SET is_deleted = false
-            AND expiry_date = ${new Date()} WHERE id = ${subscription.id}`);
+            AND expiry_date = '${new Date().toISOString()}' WHERE id = ${
+              subscription.id
+            }`);
           promises.push(updateSubscription);
         }
       } else {
         const saveSubscription = queryRunner.query(
           `INSERT INTO subscriptions (subscribee_id, subscriber_id, expiry_date) VALUES (${
             subscribee.id
-          }, ${subscriber.id}, ${new Date()})`,
+          }, ${subscriber.id}, '${new Date().toISOString()}')`,
         );
         promises.push(saveSubscription);
       }

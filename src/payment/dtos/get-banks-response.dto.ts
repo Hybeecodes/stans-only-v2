@@ -1,16 +1,11 @@
-export class GetBanksResponseDto {
-  public status: boolean;
-  public message: string;
-  public data: [
+import { IPaymentResponse } from './verify-payment-response.dto';
+
+export interface GetBanksResponseDto extends IPaymentResponse {
+  data: [
     {
       id: number;
       code: string;
       name: string;
     },
   ];
-  constructor(data) {
-    this.status = data.status;
-    this.message = data.message;
-    this.data = data.data;
-  }
 }

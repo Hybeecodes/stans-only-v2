@@ -1,6 +1,4 @@
-export interface VerifyPaymentResponseDto {
-  status: string;
-  message: string;
+export interface VerifyPaymentResponseDto extends IPaymentResponse {
   data: {
     id: number;
     tx_ref: string;
@@ -29,4 +27,10 @@ export interface VerifyPaymentResponseDto {
       expiry: string;
     };
   };
+}
+
+export interface IPaymentResponse {
+  status: string;
+  message: string;
+  data?: any;
 }

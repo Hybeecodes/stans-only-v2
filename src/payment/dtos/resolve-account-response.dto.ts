@@ -1,13 +1,6 @@
-export class ResolveAccountResponseDto {
-  public accountNumber: string;
-  public accountName: string;
-  public status: string;
-  public message: string;
+import { IPaymentResponse } from './verify-payment-response.dto';
 
-  constructor(data) {
-    this.status = data.status;
-    this.message = data.message;
-    this.accountNumber = data.account_number;
-    this.accountName = data.account_name;
-  }
+export interface ResolveAccountResponseDto extends IPaymentResponse {
+  accountNumber: string;
+  accountName: string;
 }

@@ -57,7 +57,7 @@ export class FlutterwaveService implements IPaymentService {
           HttpStatus.BAD_REQUEST,
         );
       }
-      return new ResolveAccountResponseDto(response.data);
+      return response.data as ResolveAccountResponseDto;
     } catch (e) {
       this.logger.error(`Account Resolution Failed: ${JSON.stringify(e)}`);
       throw new HttpException(
@@ -138,7 +138,7 @@ export class FlutterwaveService implements IPaymentService {
   async getBanks(payload: any): Promise<GetBanksResponseDto> {
     try {
       const response = await this.flutterwaveClient.Bank.country(payload);
-      return new GetBanksResponseDto(response);
+      return response as GetBanksResponseDto;
     } catch (e) {
       this.logger.error(`Get Banks Failed: ${JSON.stringify(e)}`);
       throw new HttpException(
