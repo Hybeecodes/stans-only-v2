@@ -14,6 +14,7 @@ import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { HttpErrorFilter } from './shared/http-error-filter';
 import { FileModule } from './file/file.module';
 import { PaymentModule } from './payment/payment.module';
+import { CronModule } from './cron/cron.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { PaymentModule } from './payment/payment.module';
     ClientModule,
     FileModule,
     PaymentModule,
+    CronModule,
   ],
   controllers: [AppController],
   providers: [
