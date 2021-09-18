@@ -60,6 +60,9 @@ export class User {
   @Column('varchar', { nullable: true, length: 255 })
   resetToken: string;
 
+  @Column('varchar', { nullable: true, length: 30 })
+  bvn: string;
+
   @Column('date', { nullable: true })
   dateOfBirth: Date;
 
@@ -72,7 +75,7 @@ export class User {
   @Column('boolean', { nullable: false, default: false })
   pushNotificationStatus: boolean;
 
-  @Column('decimal', { nullable: false, default: '0.0', precision: 2 })
+  @Column('decimal', { precision: 12, scale: 2, default: '0.0' })
   subscriptionFee: number;
 
   @Column('int', { nullable: false, default: 0 })

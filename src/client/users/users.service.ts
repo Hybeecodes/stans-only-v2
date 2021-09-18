@@ -277,6 +277,33 @@ export class UsersService {
     }
   }
 
+  async updateUserBvn(userId: number, bvn: string): Promise<void> {
+    const user = await this.findUserById(userId);
+    try {
+      user.bvn = bvn;
+      await this.userRepository.save(user);
+    } catch (e) {
+      this.logger.error(`Unable to update BVN: ${JSON.stringify(e.message)}`);
+      throw new HttpException(
+        'Unable to update BVN',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async fetchUserBvn(userId: number): Promise<{ bvn: string }> {
+    const user = await this.findUserById(userId);
+    try {
+      return { bvn: user.bvn };
+    } catch (e) {
+      this.logger.error(`Unable to retrieve BVN: ${JSON.stringify(e.message)}`);
+      throw new HttpException(
+        'Unable to retrieve BVN',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   async incrementAvailableBalance(
     userId: number,
     amount: number,

@@ -107,7 +107,7 @@ export class FlutterwaveService implements IPaymentService {
           this.walletHistoryRepository.save(walletHistory);
         promises.push(saveWalletHistory);
         await Promise.all(promises);
-        return { message };
+        return { message: 'Wallet Top-up Successful' };
       } else {
         throw new HttpException(
           message || 'Payment Verification Failed',

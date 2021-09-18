@@ -8,6 +8,7 @@ export class BankDto {
   accountNumber: string;
 
   constructor(bank: BankAccount) {
+    this.id = bank.id;
     this.bankCode = bank.bankCode;
     this.bankName = bank.bankName;
     this.accountName = bank.accountName;

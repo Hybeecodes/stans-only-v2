@@ -12,7 +12,6 @@ import {
 import { UsersService } from './users.service';
 import { SuccessResponseDto } from '../../shared/success-response.dto';
 import { LoggedInUser } from '../../utils/decorators/logged-in-user.decorator';
-import { UpdateUserProfileDto } from './dtos/update-user-profile.dto';
 import { UpdateNotificationSettingsDto } from './dtos/update-notification-settings.dto';
 import { UpdateUserAccountDetailsDto } from './dtos/update-user-account-details.dto';
 import { PostsService } from '../posts/posts.service';
@@ -45,13 +44,19 @@ export class UsersController {
     return new SuccessResponseDto('Successful', response);
   }
 
-  @Put('profile')
-  async updateUserProfile(
-    @Body() input: UpdateUserProfileDto,
+  @Get('bvn')
+  async getBvn(@LoggedInUser('id') userId: number) {
+    const response = await this.usersService.fetchUserBvn(userId);
+    return new SuccessResponseDto('BVN Retrieved Successfully', response);
+  }
+
+  @Put('bvn')
+  async updateBVN(
+    @Body('bvn') bvn: string,
     @LoggedInUser('id') userId: number,
   ) {
-    const response = await this.usersService.updateUserProfile(userId, input);
-    return new SuccessResponseDto('Profile Update Successful', response);
+    const response = await this.usersService.updateUserBvn(userId, bvn);
+    return new SuccessResponseDto('BVN Updated Successfully', response);
   }
 
   @Get('wallet/balance')
