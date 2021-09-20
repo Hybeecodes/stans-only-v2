@@ -119,7 +119,8 @@ export class NotificationsService {
     queryInput: NotificationQueryDto,
   ): Promise<{ count: number; notifications: NotificationDto[] }> {
     const recipient = await this.usersService.findUserById(userId);
-    const { limit, offset, status, type } = queryInput;
+    const { limit, offset, status, subscription, like, comment, bookmark } =
+      queryInput;
     try {
       const whereClause: {
         recipient?: User;
@@ -128,15 +129,60 @@ export class NotificationsService {
         type?: string;
       } = { recipient, isDeleted: false };
       if (status) whereClause.status = status;
-      if (type) whereClause.type = type;
-      const { 0: notifications, 1: count } =
-        await this.notificationRepository.findAndCount({
-          where: { ...whereClause },
-          relations: ['sender'],
-          take: limit || 10,
-          skip: offset || 0,
-          order: { createdAt: 'DESC' },
-        });
+
+      let where = `notification.is_deleted = false AND recipient_id = ${userId}`;
+
+      if (status) {
+        where += `status = '${status}'`;
+      }
+
+      if (
+        Boolean(subscription) ||
+        Boolean(like) ||
+        Boolean(comment) ||
+        Boolean(bookmark)
+      ) {
+        where += ' AND (';
+        let or = false;
+
+        if (Boolean(subscription)) {
+          where += ` ${or ? ' OR' : ''} type = '${
+            NotificationType.SUBSCRIPTION
+          }'`;
+          or = true;
+        }
+        if (Boolean(like)) {
+          where += ` ${or ? ' OR' : ''} type = '${NotificationType.LIKE}'`;
+          or = true;
+        }
+
+        if (Boolean(comment)) {
+          where += ` ${or ? ' OR' : ''} type = '${NotificationType.COMMENT}'`;
+          or = true;
+        }
+
+        if (Boolean(bookmark)) {
+          where += ` ${or ? ' OR' : ''} type = '${NotificationType.BOOKMARK}'`;
+        }
+        where += ' )';
+      }
+
+      const { 0: notifications, 1: count } = await this.notificationRepository
+        .createQueryBuilder('notification')
+        .leftJoinAndSelect('notification.sender', 'sender')
+        .where(where)
+        .limit(limit || 10)
+        .offset(offset || 0)
+        .orderBy('notification.created_at', 'DESC')
+        .getManyAndCount();
+      // const { 0: notifications, 1: count } =
+      //   await this.notificationRepository.findAndCount({
+      //     where: { ...whereClause },
+      //     relations: ['sender'],
+      //     take: limit || 10,
+      //     skip: offset || 0,
+      //     order: { createdAt: 'DESC' },
+      //   });
       return {
         count,
         notifications: notifications.map((n) => {
