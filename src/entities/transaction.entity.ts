@@ -12,9 +12,14 @@ export enum TransactionTypes {
   SUBSCRIPTION = 'SUBSCRIPTION',
 }
 
+export enum PaymentStatus {
+  NEW = 'NEW',
+  COMPLETED = 'COMPLETED',
+}
+
 @Entity('transactions')
 export class Transaction extends BaseEntity {
-  @Column('varchar')
+  @Column('varchar', { nullable: true })
   currency: string;
 
   @Column('decimal', {
@@ -26,16 +31,27 @@ export class Transaction extends BaseEntity {
   @Index('idx_transaction_reference', { unique: true })
   @Column('varchar', {
     length: 45,
+    nullable: true,
+  })
+  transactionReference: string;
+
+  @Index('idx_reference', { unique: true })
+  @Column('varchar', {
+    length: 45,
   })
   reference: string;
 
   @Column({
     type: 'int',
+    nullable: true,
   })
   transactionId: number;
 
-  @Column('enum', { enum: PaymentProviders })
+  @Column('enum', { enum: PaymentProviders, nullable: true })
   paymentProvider: PaymentProviders;
+
+  @Column('enum', { enum: PaymentStatus, default: PaymentStatus.NEW })
+  paymentStatus: PaymentStatus;
 
   @Column('enum', { enum: TransactionTypes })
   transactionType: TransactionTypes;
@@ -52,6 +68,6 @@ export class Transaction extends BaseEntity {
   })
   user: User;
 
-  @Column({ type: 'datetime' })
+  @Column({ type: 'datetime', nullable: true })
   paymentDate: Date;
 }

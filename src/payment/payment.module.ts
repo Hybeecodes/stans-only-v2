@@ -9,6 +9,8 @@ import { UsersModule } from '../client/users/users.module';
 import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { WalletHistoryRepository } from '../repositories/wallet-history.repository';
+import { PaymentService } from './payment.service';
+import { PaymentProviderFactory } from './factories/payment-provider.factory';
 
 @Module({
   imports: [
@@ -33,6 +35,9 @@ import { WalletHistoryRepository } from '../repositories/wallet-history.reposito
       provide: Injectables.PAYMENT_SERVICE,
       useClass: FlutterwaveService,
     },
+    PaymentService,
+    PaymentProviderFactory,
+    FlutterwaveService,
   ],
 })
 export class PaymentModule {}

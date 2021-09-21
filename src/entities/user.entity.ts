@@ -9,6 +9,7 @@ import {
 import { StatusType } from '../shared/constants/status-type.enum';
 import { comparePassword, hashPassword } from '../utils/helpers';
 import { Exclude } from 'class-transformer';
+import { Countries } from '../shared/constants/countries.enum';
 
 export enum SubscriptionType {
   FREE = 'FREE',
@@ -28,6 +29,9 @@ export class User {
 
   @Column('varchar', { nullable: false, length: 30, unique: true })
   userName: string;
+
+  @Column('enum', { enum: Countries, default: Countries.NG })
+  countryCode: string;
 
   @Column('varchar', { nullable: false, length: 255, unique: true })
   email: string;
