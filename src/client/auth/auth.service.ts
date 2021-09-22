@@ -114,7 +114,7 @@ export class AuthService {
 
   async login(
     input: LoginDto,
-  ): Promise<{ user: UserLoginResponse; token: string }> {
+  ): Promise<{ user: UserLoginResponse; token: string; tokenExpiry: Date }> {
     const { userName, password } = input;
     const user = await this.userRepository
       .createQueryBuilder('user')
@@ -146,12 +146,15 @@ export class AuthService {
       const notificationCount =
         await this.notificationsService.getUserUnreadNotificationCount(user.id);
       const token = this.jwtService.sign({ email: user.email });
+      const expiryDate = new Date();
+      expiryDate.setHours(expiryDate.getHours() + 1);
       return {
         user: {
           ...user.toUserResponse(),
           notificationCount: Number(notificationCount),
         },
         token,
+        tokenExpiry: expiryDate,
       };
     } catch (e) {
       this.logger.error(`Login Failed: ${JSON.stringify(e.message)}`);
