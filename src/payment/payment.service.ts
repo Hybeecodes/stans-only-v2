@@ -15,6 +15,9 @@ import { CompleteTopUpTransactionDto } from './dtos/complete-top-up-transaction.
 import { Connection } from 'typeorm';
 import { InitiateTopUpTransactionDto } from './dtos/initiate-top-up-transaction.dto';
 import { FetchBanksQueryDto } from './dtos/fetch-banks-query.dto';
+import { WithdrawalDto } from './dtos/withdrawal.dto';
+import { BankTransferDto } from './dtos/bank-transfer.dto';
+import { BankService } from '../client/bank/bank.service';
 
 @Injectable()
 export class PaymentService {
@@ -26,6 +29,7 @@ export class PaymentService {
     @InjectRepository(WalletHistoryRepository)
     private readonly walletHistoryRepository: WalletHistoryRepository,
     private readonly usersService: UsersService,
+    private readonly bankService: BankService,
     private readonly paymentProviderFactory: PaymentProviderFactory,
     private readonly connection: Connection,
   ) {
@@ -136,5 +140,40 @@ export class PaymentService {
       PaymentProviders.FLUTTERWAVE,
     );
     return paymentProvider.getBanks(payload);
+  }
+
+  async processWithdrawal(payload: WithdrawalDto, userId: number) {
+    await this.usersService.findUserById(userId);
+    const userBanks = await this.bankService.fetchUserBanks(userId);
+    if (userBanks.length === 0) {
+      throw new HttpException(
+        'No Bank Account is Associated with this account',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const defaultBank = userBanks[0];
+    const { amount } = payload;
+    try {
+      const transferPayload: BankTransferDto = {
+        amount,
+        account_bank: defaultBank.bankCode,
+        account_number: defaultBank.accountNumber,
+        currency: 'NGN',
+        narration: 'Withdrawal From Wallet',
+        reference: `WITH_${Date.now()}`,
+        debit_currency: 'NGN',
+        callback_url: '',
+      };
+      const paymentProvider = this.paymentProviderFactory.findOne(
+        PaymentProviders.FLUTTERWAVE,
+      );
+      await paymentProvider.initiateBankTransfer(transferPayload);
+    } catch (e) {
+      this.logger.error(`Payout Initiation Failed`);
+      throw new HttpException(
+        'Unable to Initiate Payout',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

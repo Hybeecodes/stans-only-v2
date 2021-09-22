@@ -11,12 +11,14 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { WalletHistoryRepository } from '../repositories/wallet-history.repository';
 import { PaymentService } from './payment.service';
 import { PaymentProviderFactory } from './factories/payment-provider.factory';
+import { BankModule } from '../client/bank/bank.module';
 
 @Module({
   imports: [
     HttpModule,
     TypeOrmModule.forFeature([TransactionRepository, WalletHistoryRepository]),
     UsersModule,
+    BankModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

@@ -9,5 +9,6 @@ import { UsersModule } from '../users/users.module';
   imports: [TypeOrmModule.forFeature([BankAccountRepository]), UsersModule],
   controllers: [BankController],
   providers: [BankService],
+  exports: [BankService],
 })
 export class BankModule {}

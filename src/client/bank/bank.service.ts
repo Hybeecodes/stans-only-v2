@@ -20,8 +20,18 @@ export class BankService {
 
   async newBankDetails(userId: number, input: AddAccountDto): Promise<void> {
     const user = await this.usersService.findUserById(userId);
+    const { bankCode, bankName, accountName, accountNumber } = input;
+    // check if bank details exists
+    const exists = await this.bankAccountRepository.findOne({
+      where: { bankCode, bankName, accountNumber, isDeleted: false },
+    });
+    if (exists) {
+      throw new HttpException(
+        'Bank Account already exists',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     try {
-      const { bankCode, bankName, accountName, accountNumber } = input;
       const account = await this.bankAccountRepository.create({
         bankCode,
         bankName,
