@@ -111,6 +111,12 @@ export class FlutterwaveService implements IPaymentProvider {
       return this.flutterwaveClient.Transfer.initiate(
         payoutPayload,
       ) as BankTransferResponseDto;
-    } catch (e) {}
+    } catch (e) {
+      this.logger.error(`Initiate Transfer Failed: ${JSON.stringify(e)}`);
+      throw new HttpException(
+        'Unable to Initiate Transfer',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

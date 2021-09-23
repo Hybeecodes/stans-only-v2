@@ -56,4 +56,9 @@ export class PaymentController {
     const { message, data } = await this.paymentService.fetchBanks(payload);
     return new SuccessResponseDto(message, data);
   }
+
+  @Get('complete-transfer')
+  async completeTransfer(@Body() payload: any) {
+    console.log(payload);
+  }
 }

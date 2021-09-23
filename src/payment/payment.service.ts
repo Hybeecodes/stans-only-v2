@@ -142,8 +142,8 @@ export class PaymentService {
     return paymentProvider.getBanks(payload);
   }
 
-  async processWithdrawal(payload: WithdrawalDto, userId: number) {
-    await this.usersService.findUserById(userId);
+  async initiateWithdrawal(payload: WithdrawalDto, userId: number) {
+    const user = await this.usersService.findUserById(userId);
     const userBanks = await this.bankService.fetchUserBanks(userId);
     if (userBanks.length === 0) {
       throw new HttpException(
@@ -151,8 +151,21 @@ export class PaymentService {
         HttpStatus.BAD_REQUEST,
       );
     }
+    const reference = `WITH_${Date.now()}`;
+    // log withdrawal transaction
     const defaultBank = userBanks[0];
     const { amount } = payload;
+    const transaction = this.transactionRepository.create({
+      user,
+      paymentStatus: PaymentStatus.NEW,
+      reference,
+      paymentProvider: PaymentProviders.FLUTTERWAVE,
+      amount,
+      transactionType: TransactionTypes.WITHDRAWAL,
+      description: 'Withdrawal From Wallet',
+      currency: 'NGN',
+    });
+    await this.transactionRepository.save(transaction);
     try {
       const transferPayload: BankTransferDto = {
         amount,
