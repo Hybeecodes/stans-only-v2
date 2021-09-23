@@ -175,7 +175,8 @@ export class PaymentService {
         narration: 'Withdrawal From Wallet',
         reference: `WITH_${Date.now()}`,
         debit_currency: 'NGN',
-        callback_url: '',
+        callback_url:
+          'https://evening-dawn-42027.herokuapp.com/api/stans-only-api/v1/payment/complete-transfer',
       };
       const paymentProvider = this.paymentProviderFactory.findOne(
         PaymentProviders.FLUTTERWAVE,
