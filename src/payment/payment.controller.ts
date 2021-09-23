@@ -75,6 +75,6 @@ export class PaymentController {
   @SkipAuth()
   @Post('complete-transfer')
   async completeTransfer(@Body() payload: any) {
-    console.log(payload);
+    await this.paymentService.completeWithdrawal(payload);
   }
 }

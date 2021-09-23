@@ -14,7 +14,8 @@ export enum TransactionTypes {
 
 export enum PaymentStatus {
   NEW = 'NEW',
-  COMPLETED = 'COMPLETED',
+  COMPLETED = 'SUCCESSFUL',
+  FAILED = 'FAILED',
 }
 
 @Entity('transactions')
@@ -58,6 +59,9 @@ export class Transaction extends BaseEntity {
 
   @Column('text')
   description: string;
+
+  @Column('text')
+  paymentProviderResponseMessage: string;
 
   @Column('text', { nullable: true, default: null })
   meta: string;

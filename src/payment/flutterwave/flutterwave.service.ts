@@ -108,7 +108,7 @@ export class FlutterwaveService implements IPaymentProvider {
     payoutPayload: BankTransferDto,
   ): Promise<BankTransferResponseDto> {
     try {
-      return this.flutterwaveClient.Transfer.initiate(
+      return this.prodFlutterwaveClient.Transfer.initiate(
         payoutPayload,
       ) as BankTransferResponseDto;
     } catch (e) {

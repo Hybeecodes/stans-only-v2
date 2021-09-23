@@ -18,6 +18,7 @@ import { FetchBanksQueryDto } from './dtos/fetch-banks-query.dto';
 import { WithdrawalDto } from './dtos/withdrawal.dto';
 import { BankTransferDto } from './dtos/bank-transfer.dto';
 import { BankService } from '../client/bank/bank.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class PaymentService {
@@ -32,6 +33,7 @@ export class PaymentService {
     private readonly bankService: BankService,
     private readonly paymentProviderFactory: PaymentProviderFactory,
     private readonly connection: Connection,
+    private readonly config: ConfigService,
   ) {
     this.logger = new Logger(this.constructor.name);
   }
@@ -164,6 +166,7 @@ export class PaymentService {
       transactionType: TransactionTypes.WITHDRAWAL,
       description: 'Withdrawal From Wallet',
       currency: 'NGN',
+      paymentDate: new Date().toISOString(),
     });
     await this.transactionRepository.save(transaction);
     try {
@@ -175,8 +178,9 @@ export class PaymentService {
         narration: 'Withdrawal From Wallet',
         reference: `WITH_${Date.now()}`,
         debit_currency: 'NGN',
-        callback_url:
-          'https://evening-dawn-42027.herokuapp.com/api/stans-only-api/v1/payment/complete-transfer',
+        callback_url: `${this.config.get(
+          'API_URL',
+        )}/api/stans-only-api/v1/payment/complete-transfer`,
       };
       const paymentProvider = this.paymentProviderFactory.findOne(
         PaymentProviders.FLUTTERWAVE,
@@ -188,6 +192,51 @@ export class PaymentService {
         'Unable to Initiate Payout',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    }
+  }
+
+  async completeWithdrawal(payload: any): Promise<boolean> {
+    const queryRunner = await this.connection.createQueryRunner();
+    await queryRunner.connect();
+    try {
+      const {
+        data: { reference, status, complete_message, amount },
+      } = payload;
+      await queryRunner.startTransaction();
+      const transaction = await this.transactionRepository.findOne({
+        where: {
+          reference,
+          isDeleted: false,
+          transactionType: TransactionTypes.WITHDRAWAL,
+          paymentStatus: PaymentStatus.NEW,
+        },
+        relations: ['user'],
+      });
+      if (!transaction) {
+        this.logger.error(
+          `Transaction With reference ${reference} does not exist`,
+        );
+        return false;
+      }
+      transaction.paymentStatus = status;
+      transaction.paymentProviderResponseMessage = complete_message;
+      transaction.meta = JSON.stringify(payload.data);
+      await this.transactionRepository.save(transaction);
+      // update wallet if it was successful
+      await this.usersService.decrementAvailableBalance(
+        transaction.user.id,
+        amount,
+      );
+      queryRunner.query(
+        `INSERT INTO wallet_history (user_id, amount, type) 
+                VALUES (${transaction.user.id}, ${amount}, '${TransactionTypes.WITHDRAWAL}')`,
+      );
+      queryRunner.commitTransaction();
+    } catch (e) {
+      await queryRunner.rollbackTransaction();
+      this.logger.error(`Withdrawal Not Completed: ${JSON.stringify(e)}`);
+    } finally {
+      await queryRunner.release();
     }
   }
 }
