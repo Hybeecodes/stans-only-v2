@@ -7,6 +7,7 @@ import { ResolveAccountDto } from './dtos/resolve-account.dto';
 import { CompleteTopUpTransactionDto } from './dtos/complete-top-up-transaction.dto';
 import { PaymentService } from './payment.service';
 import { InitiateTopUpTransactionDto } from './dtos/initiate-top-up-transaction.dto';
+import { WithdrawalDto } from './dtos/withdrawal.dto';
 
 @Controller('payment')
 export class PaymentController {
@@ -51,13 +52,26 @@ export class PaymentController {
     return new SuccessResponseDto('Top up Initiation Successful', response);
   }
 
+  @UseGuards(UserAuthGuard)
+  @Post('wallet/withdraw/initiate')
+  async withdraw(
+    @Body() payload: WithdrawalDto,
+    @LoggedInUser('id') userId: number,
+  ) {
+    const response = await this.paymentService.initiateWithdrawal(
+      payload,
+      userId,
+    );
+    return new SuccessResponseDto('Withdrawal Initiation Successful', response);
+  }
+
   @Get('banks')
   async fetchBanks(@Query() payload: FetchBanksQueryDto) {
     const { message, data } = await this.paymentService.fetchBanks(payload);
     return new SuccessResponseDto(message, data);
   }
 
-  @Get('complete-transfer')
+  @Post('complete-transfer')
   async completeTransfer(@Body() payload: any) {
     console.log(payload);
   }
