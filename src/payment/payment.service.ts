@@ -176,7 +176,7 @@ export class PaymentService {
         account_number: defaultBank.accountNumber,
         currency: 'NGN',
         narration: 'Withdrawal From Wallet',
-        reference: `WITH_${Date.now()}`,
+        reference,
         debit_currency: 'NGN',
         callback_url: `${this.config.get(
           'API_URL',
