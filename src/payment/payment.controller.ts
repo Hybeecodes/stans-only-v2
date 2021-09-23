@@ -8,6 +8,7 @@ import { CompleteTopUpTransactionDto } from './dtos/complete-top-up-transaction.
 import { PaymentService } from './payment.service';
 import { InitiateTopUpTransactionDto } from './dtos/initiate-top-up-transaction.dto';
 import { WithdrawalDto } from './dtos/withdrawal.dto';
+import { SkipAuth } from '../utils/meta/skip-auth';
 
 @Controller('payment')
 export class PaymentController {
@@ -71,6 +72,7 @@ export class PaymentController {
     return new SuccessResponseDto(message, data);
   }
 
+  @SkipAuth()
   @Post('complete-transfer')
   async completeTransfer(@Body() payload: any) {
     console.log(payload);
