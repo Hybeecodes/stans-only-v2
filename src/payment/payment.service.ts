@@ -182,6 +182,7 @@ export class PaymentService {
           'API_URL',
         )}/api/stans-only-api/v1/payment/complete-transfer`,
       };
+      console.log(transferPayload);
       const paymentProvider = this.paymentProviderFactory.findOne(
         PaymentProviders.FLUTTERWAVE,
       );
