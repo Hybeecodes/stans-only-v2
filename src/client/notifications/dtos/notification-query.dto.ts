@@ -9,17 +9,17 @@ export class NotificationQueryDto extends BaseQueryDto {
 
   @IsOptional()
   @IsBooleanString()
-  subscription: boolean;
+  subscription: string;
 
   @IsOptional()
   @IsBooleanString()
-  bookmark: boolean;
+  bookmark: string;
 
   @IsOptional()
   @IsBooleanString()
-  comment: boolean;
+  comment: string;
 
   @IsOptional()
   @IsBooleanString()
-  like: boolean;
+  like: string;
 }

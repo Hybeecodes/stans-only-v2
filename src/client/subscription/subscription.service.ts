@@ -13,6 +13,7 @@ import { NotificationType } from '../../entities/notification.entity';
 import { WalletHistoryRepository } from '../../repositories/wallet-history.repository';
 import { WalletLedgerRepository } from '../../repositories/wallet-ledger.repository';
 import { TransactionTypes } from '../../entities/transaction.entity';
+import { calculateFeeFromAmount } from '../../utils/helpers';
 
 @Injectable()
 export class SubscriptionService {
@@ -77,27 +78,36 @@ export class SubscriptionService {
         saveSubscriberWalletHistory,
       ];
 
-      /// Subscribee Updates
+      /// Creator Updates
+      const fee = calculateFeeFromAmount(subscriptionFee);
+      const balance = subscriptionFee - fee;
       const updatePendingBalance = queryRunner.query(
-        `UPDATE users SET balance_on_hold =  balance_on_hold + ${subscriptionFee} WHERE id = ${subscribee.id}`,
+        `UPDATE users SET balance_on_hold =  balance_on_hold + ${balance} WHERE id = ${subscribee.id}`,
       );
       const saveLedgerRecord = queryRunner.query(
         `INSERT INTO wallet_ledger (user_id, amount) 
-                VALUES (${subscribee.id}, ${subscriptionFee})`,
+                VALUES (${subscribee.id}, ${balance})`,
       );
       const saveSubscribeeWalletHistory = queryRunner.query(
-        `INSERT INTO wallet_history (user_id, amount, type) 
-                VALUES (${subscribee.id}, ${subscriptionFee}, '${TransactionTypes.SUBSCRIPTION}')`,
+        `INSERT INTO wallet_history (user_id, amount, type, fee, initiator_id) 
+                VALUES (${subscribee.id}, ${subscriptionFee}, '${TransactionTypes.SUBSCRIPTION}', ${fee}, ${subscriber.id})`,
       );
       promises.push(saveLedgerRecord);
       promises.push(updatePendingBalance);
       promises.push(saveSubscribeeWalletHistory);
+      const now = new Date();
+      let expiry: Date;
+      if (now.getMonth() == 11) {
+        expiry = new Date(now.getFullYear() + 1, 0, 1);
+      } else {
+        expiry = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      }
 
       if (subscription) {
         if (subscription.isDeleted) {
           const updateSubscription =
             queryRunner.query(`UPDATE subscriptions SET is_deleted = false
-            AND expiry_date = '${new Date().toISOString()}' WHERE id = ${
+            AND expiry_date = '${expiry.toISOString()}' WHERE id = ${
               subscription.id
             }`);
           promises.push(updateSubscription);
@@ -106,7 +116,7 @@ export class SubscriptionService {
         const saveSubscription = queryRunner.query(
           `INSERT INTO subscriptions (subscribee_id, subscriber_id, expiry_date) VALUES (${
             subscribee.id
-          }, ${subscriber.id}, '${new Date().toISOString()}')`,
+          }, ${subscriber.id}, '${expiry.toISOString()}')`,
         );
         promises.push(saveSubscription);
       }

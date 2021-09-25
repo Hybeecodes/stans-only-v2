@@ -10,6 +10,7 @@ export enum TransactionTypes {
   TOP_UP = 'TOP_UP',
   WITHDRAWAL = 'WITHDRAWAL',
   SUBSCRIPTION = 'SUBSCRIPTION',
+  TIP = 'TIP',
 }
 
 export enum PaymentStatus {

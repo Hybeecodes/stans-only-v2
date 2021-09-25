@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { BankService } from './bank.service';
 import { AddAccountDto } from './dtos/add-account.dto';
 import { LoggedInUser } from '../../utils/decorators/logged-in-user.decorator';
@@ -31,6 +39,12 @@ export class BankController {
       'Account Details updated Successfully',
       response,
     );
+  }
+
+  @Delete(':id')
+  async deleteBank(@Param('id') id: number) {
+    const response = await this.bankService.deleteBankAccount(id);
+    return new SuccessResponseDto('Account deleted successfully', response);
   }
 
   @Get('')

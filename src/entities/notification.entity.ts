@@ -12,6 +12,7 @@ export enum NotificationType {
   BOOKMARK = 'BOOKMARK',
   COMMENT = 'COMMENT',
   LIKE = 'LIKE',
+  TIP = 'TIP',
 }
 
 @Entity()

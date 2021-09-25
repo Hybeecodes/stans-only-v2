@@ -16,6 +16,19 @@ export class WalletHistory extends BaseEntity {
   @JoinColumn({ name: 'transaction_id' })
   transaction: Transaction;
 
+  @ManyToOne(() => User, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'initiator_id' })
+  initiator: User;
+
+  @Column({
+    name: 'initiator_id',
+    nullable: true,
+  })
+  initiatorId: number;
+
   @Column('enum', { enum: TransactionTypes })
   type: TransactionTypes;
 
@@ -25,4 +38,11 @@ export class WalletHistory extends BaseEntity {
     default: '0.0',
   })
   amount: number;
+
+  @Column('decimal', {
+    precision: 12,
+    scale: 2,
+    default: '0.0',
+  })
+  fee: number;
 }

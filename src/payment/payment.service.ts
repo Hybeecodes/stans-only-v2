@@ -19,6 +19,8 @@ import { WithdrawalDto } from './dtos/withdrawal.dto';
 import { BankTransferDto } from './dtos/bank-transfer.dto';
 import { BankService } from '../client/bank/bank.service';
 import { ConfigService } from '@nestjs/config';
+import { BaseQueryDto } from '../shared/dtos/base-query.dto';
+import { WalletHistoryDto } from './dtos/wallet-history.dto';
 
 @Injectable()
 export class PaymentService {
@@ -146,16 +148,9 @@ export class PaymentService {
 
   async initiateWithdrawal(payload: WithdrawalDto, userId: number) {
     const user = await this.usersService.findUserById(userId);
-    const userBanks = await this.bankService.fetchUserBanks(userId);
-    if (userBanks.length === 0) {
-      throw new HttpException(
-        'No Bank Account is Associated with this account',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    const bank = await this.bankService.getBankById(user, payload.accountId);
     const reference = `WITH_${Date.now()}`;
     // log withdrawal transaction
-    const defaultBank = userBanks[0];
     const { amount } = payload;
     const transaction = this.transactionRepository.create({
       user,
@@ -172,8 +167,8 @@ export class PaymentService {
     try {
       const transferPayload: BankTransferDto = {
         amount,
-        account_bank: defaultBank.bankCode,
-        account_number: defaultBank.accountNumber,
+        account_bank: bank.bankCode,
+        account_number: bank.accountNumber,
         currency: 'NGN',
         narration: 'Withdrawal From Wallet',
         reference,
@@ -188,7 +183,7 @@ export class PaymentService {
       );
       await paymentProvider.initiateBankTransfer(transferPayload);
     } catch (e) {
-      this.logger.error(`Payout Initiation Failed`);
+      this.logger.error(`Payout Initiation Failed: ${JSON.stringify(e)}`);
       throw new HttpException(
         'Unable to Initiate Payout',
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -238,6 +233,39 @@ export class PaymentService {
       this.logger.error(`Withdrawal Not Completed: ${JSON.stringify(e)}`);
     } finally {
       await queryRunner.release();
+    }
+  }
+
+  async getWalletTransactionHistory(
+    userId: number,
+    query: BaseQueryDto,
+  ): Promise<any> {
+    await this.usersService.findUserById(userId);
+    const { offset, limit } = query;
+    try {
+      const [walletHistory, count] = await this.walletHistoryRepository
+        .createQueryBuilder('history')
+        .leftJoinAndSelect('history.initiator', 'initiator')
+        .where(`history.user_id  = ${userId}`)
+        .andWhere('history.is_deleted = false')
+        .limit(limit || 10)
+        .offset(offset || 0)
+        .orderBy('history.created_at', 'DESC')
+        .getManyAndCount();
+      return {
+        count,
+        walletHistory: walletHistory.map(
+          (history) => new WalletHistoryDto(history),
+        ),
+      };
+    } catch (e) {
+      this.logger.error(
+        `getWalletTransactionHistory Failed: ${JSON.stringify(e)}`,
+      );
+      throw new HttpException(
+        'Unable to retrieve wallet transactions',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }

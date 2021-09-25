@@ -5,6 +5,7 @@ import { AddAccountDto } from './dtos/add-account.dto';
 import { UsersService } from '../users/users.service';
 import { UpdateAccountDto } from './dtos/update-account.dto';
 import { BankDto } from './dtos/bank.dto';
+import { User } from '../../entities/user.entity';
 
 @Injectable()
 export class BankService {
@@ -84,7 +85,10 @@ export class BankService {
   async fetchUserBanks(userId: number): Promise<BankDto[]> {
     const user = await this.usersService.findUserById(userId);
     try {
-      const banks = await this.bankAccountRepository.find({ user });
+      const banks = await this.bankAccountRepository.find({
+        user,
+        isDeleted: false,
+      });
       return banks.map((b) => {
         return new BankDto(b);
       });
@@ -97,5 +101,29 @@ export class BankService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  async getBankById(user: User, bankId: number): Promise<BankDto> {
+    const bank = await this.bankAccountRepository.findOne({
+      user,
+      id: bankId,
+      isDeleted: false,
+    });
+    if (!bank) {
+      throw new HttpException('Bank Account not found', HttpStatus.NOT_FOUND);
+    }
+    return new BankDto(bank);
+  }
+
+  async deleteBankAccount(bankId: number): Promise<void> {
+    const bank = await this.bankAccountRepository.findOne({
+      id: bankId,
+      isDeleted: false,
+    });
+    if (!bank) {
+      throw new HttpException('Bank Account not found', HttpStatus.NOT_FOUND);
+    }
+    bank.isDeleted = true;
+    await this.bankAccountRepository.save(bank);
   }
 }

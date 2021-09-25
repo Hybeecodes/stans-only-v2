@@ -9,9 +9,16 @@ import { NotificationSettingsResponseDto } from './dtos/notification-settings-re
 import { UpdateUserProfileDto } from './dtos/update-user-profile.dto';
 import { UserAccountDetailsDto } from './dtos/user-account-details.dto';
 import { UpdateUserAccountDetailsDto } from './dtos/update-user-account-details.dto';
-import { EntityManager } from 'typeorm';
+import { Connection, EntityManager } from 'typeorm';
 import { StansFollowingDto } from './dtos/StansFollowing.dto';
 import { WalletBalanceDto } from './dtos/wallet-balance.dto';
+import { TransactionTypes } from '../../entities/transaction.entity';
+import { calculateFeeFromAmount } from '../../utils/helpers';
+import { Events } from '../../events/client/events.enum';
+import { NewNotificationDto } from '../notifications/dtos/new-notification.dto';
+import { NotificationType } from '../../entities/notification.entity';
+import { TipDto } from './dtos/tip.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class UsersService {
@@ -21,6 +28,8 @@ export class UsersService {
     @InjectRepository(UserRepository)
     private readonly userRepository: UserRepository,
     private readonly entityManager: EntityManager,
+    private readonly eventEmitter: EventEmitter2,
+    private connection: Connection,
   ) {
     this.logger = new Logger(UsersService.name);
   }
@@ -391,6 +400,89 @@ export class UsersService {
       this.logger.error(
         `decrementBlockedUsers operation Failed: ${JSON.stringify(e.message)}`,
       );
+    }
+  }
+
+  async tipUser(
+    giverId: number,
+    recipientName: string,
+    payload: TipDto,
+  ): Promise<void> {
+    const recipient = await this.getUserByUsername(recipientName);
+    if (recipient.id === giverId)
+      throw new HttpException(
+        'Invalid Action: You can not tip yourself',
+        HttpStatus.FORBIDDEN,
+      );
+    const { amount } = payload;
+    const giver = await this.findUserById(giverId);
+    if (Number(giver.availableBalance) < Number(amount)) {
+      this.logger.error(
+        `Insufficient wallet balance, please top-up your wallet`,
+      );
+      throw new HttpException(
+        'Insufficient wallet balance, please top-up your wallet',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const queryRunner = this.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    console.log('starting transaction');
+    try {
+      ///// giver Updates
+      const updateAvailableBalance = queryRunner.query(
+        `UPDATE users SET available_balance = available_balance - ${amount} WHERE id = ${giverId}`,
+      );
+      const saveSubscriberWalletHistory = queryRunner.query(
+        `INSERT INTO wallet_history (user_id, amount, type) 
+                VALUES (${giverId}, ${amount}, '${TransactionTypes.TIP}')`,
+      );
+      const promises: any[] = [
+        updateAvailableBalance,
+        saveSubscriberWalletHistory,
+      ];
+
+      /// Creator Updates
+      const fee = calculateFeeFromAmount(amount);
+      const balance = amount - fee;
+      const updatePendingBalance = queryRunner.query(
+        `UPDATE users SET balance_on_hold =  balance_on_hold + ${balance} WHERE id = ${recipient.id}`,
+      );
+      const saveLedgerRecord = queryRunner.query(
+        `INSERT INTO wallet_ledger (user_id, amount) 
+                VALUES (${recipient.id}, ${balance})`,
+      );
+      const saveSubscribeeWalletHistory = queryRunner.query(
+        `INSERT INTO wallet_history (user_id, amount, type, fee, initiator_id) 
+                VALUES (${recipient.id}, ${amount}, '${TransactionTypes.TIP}', ${fee}, ${giverId})`,
+      );
+      promises.push(saveLedgerRecord);
+      promises.push(updatePendingBalance);
+      promises.push(saveSubscribeeWalletHistory);
+
+      await Promise.all(promises);
+      console.log('Committing transaction');
+      await queryRunner.commitTransaction();
+
+      const notification = new NewNotificationDto();
+      notification.senderId = giverId;
+      notification.recipientId = recipient.id;
+      notification.message = `@${giver.userName} tipped to you #${amount}`;
+      notification.type = NotificationType.TIP;
+      // TODO:: Send Email to Content Creator about the operation
+      this.eventEmitter.emit(Events.NEW_NOTIFICATION, notification);
+    } catch (e) {
+      console.log('something is here');
+      await queryRunner.rollbackTransaction();
+      this.logger.error(`Tipping Failed: ${JSON.stringify(e.message)}`);
+      throw new HttpException(
+        'Unable to tip user',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    } finally {
+      console.log('Releasing transaction');
+      await queryRunner.release();
     }
   }
 }

@@ -8,6 +8,7 @@ import { SubscriptionModule } from '../subscription/subscription.module';
 import { ReportsModule } from '../reports/reports.module';
 import { BlockModule } from '../block/block.module';
 import { BookmarksModule } from '../bookmarks/bookmarks.module';
+import { PaymentModule } from '../../payment/payment.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { BookmarksModule } from '../bookmarks/bookmarks.module';
     ReportsModule,
     BlockModule,
     BookmarksModule,
+    PaymentModule,
   ],
   controllers: [UsersController],
   providers: [UsersService],

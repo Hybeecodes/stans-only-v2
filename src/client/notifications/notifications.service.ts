@@ -11,6 +11,7 @@ import { ConfigService } from '@nestjs/config';
 import { NotificationDto } from './dtos/notification.dto';
 import { NotificationQueryDto } from './dtos/notification-query.dto';
 import { User } from '../../entities/user.entity';
+import { toBoolean } from '../../utils/helpers';
 
 @Injectable()
 export class NotificationsService {
@@ -137,31 +138,31 @@ export class NotificationsService {
       }
 
       if (
-        Boolean(subscription) ||
-        Boolean(like) ||
-        Boolean(comment) ||
-        Boolean(bookmark)
+        toBoolean(subscription) ||
+        toBoolean(like) ||
+        toBoolean(comment) ||
+        toBoolean(bookmark)
       ) {
         where += ' AND (';
         let or = false;
 
-        if (Boolean(subscription)) {
+        if (toBoolean(subscription)) {
           where += ` ${or ? ' OR' : ''} type = '${
             NotificationType.SUBSCRIPTION
           }'`;
           or = true;
         }
-        if (Boolean(like)) {
+        if (toBoolean(like)) {
           where += ` ${or ? ' OR' : ''} type = '${NotificationType.LIKE}'`;
           or = true;
         }
 
-        if (Boolean(comment)) {
+        if (toBoolean(comment)) {
           where += ` ${or ? ' OR' : ''} type = '${NotificationType.COMMENT}'`;
           or = true;
         }
 
-        if (Boolean(bookmark)) {
+        if (toBoolean(bookmark)) {
           where += ` ${or ? ' OR' : ''} type = '${NotificationType.BOOKMARK}'`;
         }
         where += ' )';

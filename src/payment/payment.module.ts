@@ -1,7 +1,6 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { PaymentController } from './payment.controller';
 import { FlutterwaveService } from './flutterwave/flutterwave.service';
-import { Injectables } from '../shared/constants/injectables.enum';
 import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TransactionRepository } from '../repositories/transaction.repository';
@@ -17,7 +16,7 @@ import { BankModule } from '../client/bank/bank.module';
   imports: [
     HttpModule,
     TypeOrmModule.forFeature([TransactionRepository, WalletHistoryRepository]),
-    UsersModule,
+    forwardRef(() => UsersModule),
     BankModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -32,14 +31,7 @@ import { BankModule } from '../client/bank/bank.module';
     }),
   ],
   controllers: [PaymentController],
-  providers: [
-    {
-      provide: Injectables.PAYMENT_SERVICE,
-      useClass: FlutterwaveService,
-    },
-    PaymentService,
-    PaymentProviderFactory,
-    FlutterwaveService,
-  ],
+  providers: [PaymentService, PaymentProviderFactory, FlutterwaveService],
+  exports: [PaymentService],
 })
 export class PaymentModule {}

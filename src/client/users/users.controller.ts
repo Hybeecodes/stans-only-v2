@@ -23,6 +23,8 @@ import { ReportsService } from '../reports/reports.service';
 import { BlockService } from '../block/block.service';
 import { GetPostsQueryDto } from '../posts/dto/get-posts-query.dto';
 import { BookmarksService } from '../bookmarks/bookmarks.service';
+import { PaymentService } from '../../payment/payment.service';
+import { TipDto } from './dtos/tip.dto';
 
 @Controller('users')
 export class UsersController {
@@ -33,6 +35,7 @@ export class UsersController {
     private readonly reportsService: ReportsService,
     private readonly blockService: BlockService,
     private readonly bookmarkService: BookmarksService,
+    private readonly paymentService: PaymentService,
   ) {}
 
   @Get('profile/:username')
@@ -64,6 +67,21 @@ export class UsersController {
     const response = await this.usersService.getUserWalletBalance(userId);
     return new SuccessResponseDto(
       'Wallet Balance Retrieved Successfully',
+      response,
+    );
+  }
+
+  @Get('wallet/history')
+  async getWalletHistory(
+    @LoggedInUser('id') userId: number,
+    @Query() query: BaseQueryDto,
+  ) {
+    const response = await this.paymentService.getWalletTransactionHistory(
+      userId,
+      query,
+    );
+    return new SuccessResponseDto(
+      'Wallet history retrieved successfully',
       response,
     );
   }
@@ -206,6 +224,20 @@ export class UsersController {
       userName,
     );
     return new SuccessResponseDto('Subscription Successful', response);
+  }
+
+  @Post(':userName/tip')
+  async tipUser(
+    @LoggedInUser('id') giverId: number,
+    @Param('userName') userName: string,
+    @Body() payload: TipDto,
+  ): Promise<SuccessResponseDto> {
+    const response = await this.usersService.tipUser(
+      giverId,
+      userName,
+      payload,
+    );
+    return new SuccessResponseDto('User tipped Successfully', response);
   }
 
   @Post(':userName/unsubscribe')
