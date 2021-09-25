@@ -446,19 +446,14 @@ export class UsersService {
       /// Creator Updates
       const fee = calculateFeeFromAmount(amount);
       const balance = amount - fee;
-      const updatePendingBalance = queryRunner.query(
-        `UPDATE users SET balance_on_hold =  balance_on_hold + ${balance} WHERE id = ${recipient.id}`,
-      );
-      const saveLedgerRecord = queryRunner.query(
-        `INSERT INTO wallet_ledger (user_id, amount) 
-                VALUES (${recipient.id}, ${balance})`,
+      const updateCreatorAvailableBalance = queryRunner.query(
+        `UPDATE users SET available_balance =  available_balance + ${balance} WHERE id = ${recipient.id}`,
       );
       const saveSubscribeeWalletHistory = queryRunner.query(
         `INSERT INTO wallet_history (user_id, amount, type, fee, initiator_id) 
                 VALUES (${recipient.id}, ${amount}, '${TransactionTypes.TIP}', ${fee}, ${giverId})`,
       );
-      promises.push(saveLedgerRecord);
-      promises.push(updatePendingBalance);
+      promises.push(updateCreatorAvailableBalance);
       promises.push(saveSubscribeeWalletHistory);
 
       await Promise.all(promises);
