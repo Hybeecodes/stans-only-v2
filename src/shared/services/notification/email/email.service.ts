@@ -20,9 +20,7 @@ export class EmailService {
     this.appBaseUrl = this.configService.get('APP_BASE_URL');
   }
   private static async getTemplate(templateName) {
-    const data = await fs
-      .readFileSync(`templates/${templateName}.hbs`)
-      .toString();
+    const data = fs.readFileSync(`templates/${templateName}.hbs`).toString();
     return handlebars.compile(data);
   }
 

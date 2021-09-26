@@ -51,7 +51,7 @@ export class UsersService {
       throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
     }
     const { 0: subscription } = await this.entityManager.query(
-      `SELECT * FROM subscriptions WHERE subscriber_id = ${currentUserId} AND subscribee_id = ${user.id} AND is_deleted = false LIMIT 1`,
+      `SELECT * FROM subscriptions WHERE subscriber_id = ${currentUserId} AND subscribee_id = ${user.id} AND is_deleted = false AND DATE(expiry_date) >= DATE(NOW()) LIMIT 1`,
     );
 
     const profile = new UserProfileDto(user);
