@@ -1,4 +1,7 @@
-import { WalletHistory } from '../../entities/wallet-history.entity';
+import {
+  PaymentType,
+  WalletHistory,
+} from '../../entities/wallet-history.entity';
 import { TransactionTypes } from '../../entities/transaction.entity';
 
 export class WalletHistoryDto {
@@ -13,6 +16,7 @@ export class WalletHistoryDto {
     profilePictureUrl: string;
   };
   public channel: TransactionTypes;
+  public type: PaymentType;
   public createdDate: Date;
 
   constructor(walletHistory: WalletHistory) {
@@ -27,6 +31,7 @@ export class WalletHistoryDto {
       userName: walletHistory.initiator.userName,
       profilePictureUrl: walletHistory.initiator.profilePictureUrl,
     };
+    this.type = walletHistory.paymentType;
     this.createdDate = walletHistory.createdAt;
   }
 }
