@@ -10,6 +10,9 @@ import { ConversationDto } from './dtos/conversation.dto';
 import { ChatMediaRepository } from 'src/repositories/chat-media.repository';
 import { MessageEventPayload } from './dtos/message-event-payload.dto';
 import { Conversation } from '../../entities/conversation.entity';
+import { PaymentService } from '../../payment/payment.service';
+import { ProcessWalletPaymentDto } from '../users/dtos/process-wallet-payment.dto';
+import { TransactionTypes } from '../../entities/transaction.entity';
 
 @Injectable()
 export class ChatService {
@@ -22,6 +25,7 @@ export class ChatService {
     @InjectRepository(MessageRepository)
     private readonly messageRepository: MessageRepository,
     private readonly usersService: UsersService,
+    private readonly paymentService: PaymentService,
   ) {
     this.logger = new Logger(this.constructor.name, { timestamp: true });
   }
@@ -30,7 +34,7 @@ export class ChatService {
     newMessageDto: NewMessageDto,
     userId: number,
   ): Promise<MessageEventPayload> {
-    const { body, media, recipientId } = newMessageDto;
+    const { body, media, recipientId, cost, isPaid } = newMessageDto;
     if (userId === recipientId) {
       this.logger.error(
         `You can not send yourself a message: receiver${recipientId}`,
@@ -72,6 +76,9 @@ WHERE user_id = ${userId} || user_id = ${recipientId} GROUP BY conversationId HA
         body,
         sender,
         receiver: recipient,
+        isPaid,
+        cost,
+        canView: !isPaid,
       });
       const saveMessage = await this.messageRepository.save(newMessage);
       if (media && media.length > 0) {
@@ -87,7 +94,11 @@ WHERE user_id = ${userId} || user_id = ${recipientId} GROUP BY conversationId HA
       await this.conversationRepository.query(
         `UPDATE conversations SET last_message_id = ${saveMessage.id} WHERE id = ${conversation.id}`,
       );
-      return new MessageEventPayload(saveMessage, conversationId);
+      const message = await this.messageRepository.findOne({
+        where: { id: newMessage.id, isDeleted: false },
+        relations: ['media', 'sender', 'receiver'],
+      });
+      return new MessageEventPayload(message, conversationId);
     } catch (e) {
       this.logger.error(`Message Not Sent: ${JSON.stringify(e)}`);
       throw new HttpException(
@@ -98,6 +109,7 @@ WHERE user_id = ${userId} || user_id = ${recipientId} GROUP BY conversationId HA
   }
 
   async getMesssagesByConversationId(
+    userId: number,
     conversationId: number,
     queryData: BaseQueryDto,
   ): Promise<{ count: number; messages: MessageDto[] }> {
@@ -123,7 +135,7 @@ WHERE user_id = ${userId} || user_id = ${recipientId} GROUP BY conversationId HA
       return {
         count,
         messages: messages.map((message) => {
-          return new MessageDto(message);
+          return new MessageDto(message, userId);
         }),
       };
     } catch (e) {
@@ -281,7 +293,7 @@ WHERE user_id = ${userId} || user_id = ${user2.id} GROUP BY conversationId HAVIN
       return {
         count,
         messages: messages.map((message) => {
-          return new MessageDto(message);
+          return new MessageDto(message, userId);
         }),
       };
     } catch (e) {
@@ -290,6 +302,54 @@ WHERE user_id = ${userId} || user_id = ${user2.id} GROUP BY conversationId HAVIN
       );
       throw new HttpException(
         'Unable to Fetch Conversation',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async payForMessage(userId: number, messageId: number): Promise<void> {
+    const user = await this.usersService.findUserById(userId);
+    const message = await this.messageRepository.findOne({
+      where: { id: messageId, isDeleted: false },
+    });
+    if (!message) {
+      throw new HttpException('message not found', HttpStatus.NOT_FOUND);
+    }
+    if (!message.isPaid) {
+      throw new HttpException(
+        'Invalid Operation: message is free',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    if (message.canView) {
+      throw new HttpException(
+        'Invalid Operation: message has already been paid for',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    const sender = await this.usersService.findUserById(message.senderId);
+    if (user.availableBalance < message.cost) {
+      this.logger.error(
+        `Insufficient wallet balance, please top-up your wallet`,
+      );
+      throw new HttpException(
+        'Insufficient wallet balance, please top-up your wallet',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    try {
+      const paymentPayload = new ProcessWalletPaymentDto();
+      paymentPayload.amount = message.cost;
+      paymentPayload.type = TransactionTypes.PAY_PER_VIEW_DM;
+      paymentPayload.recipientId = sender.id;
+      paymentPayload.giverId = userId;
+      await this.paymentService.processWalletPayment(paymentPayload);
+      message.canView = true;
+      await this.messageRepository.save(message);
+    } catch (e) {
+      this.logger.error(`payForMessage Failed: ${JSON.stringify(e)}`);
+      throw new HttpException(
+        'Payment Failed',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

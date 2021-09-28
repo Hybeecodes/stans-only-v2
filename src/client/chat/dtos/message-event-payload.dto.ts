@@ -15,6 +15,9 @@ export class MessageEventPayload {
   public media: { url: string; mediaType: string }[];
   public conversationId: string;
   public isRead: boolean;
+  public isPaid: boolean;
+  public canView: boolean;
+  public cost: number;
   public createdAt: Date;
   constructor(message: Message, conversationId: string) {
     this.id = message.id;
@@ -28,11 +31,14 @@ export class MessageEventPayload {
     };
     this.recipientId = message.receiver.id;
     this.senderId = message.sender.id;
+    this.isPaid = message.isPaid;
+    this.canView = message.canView;
+    this.cost = message.cost;
     this.media =
       message.media &&
       message.media.map((m) => {
         return {
-          url: m.url,
+          url: this.canView ? m.url : null,
           mediaType: m.mediaType,
         };
       });

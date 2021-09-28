@@ -21,6 +21,9 @@ import { BankService } from '../client/bank/bank.service';
 import { ConfigService } from '@nestjs/config';
 import { BaseQueryDto } from '../shared/dtos/base-query.dto';
 import { WalletHistoryDto } from './dtos/wallet-history.dto';
+import { ProcessWalletPaymentDto } from '../client/users/dtos/process-wallet-payment.dto';
+import { calculateFeeFromAmount } from '../utils/helpers';
+import { PaymentType } from '../entities/wallet-history.entity';
 
 @Injectable()
 export class PaymentService {
@@ -118,8 +121,8 @@ export class PaymentService {
         // update wallet
         await this.usersService.incrementAvailableBalance(userId, data.amount);
         queryRunner.query(
-          `INSERT INTO wallet_history (user_id, amount, type) 
-                VALUES (${userId}, ${data.amount}, '${TransactionTypes.TOP_UP}')`,
+          `INSERT INTO wallet_history (user_id, amount, type, payment_type) 
+                VALUES (${userId}, ${data.amount}, '${TransactionTypes.TOP_UP}', '${PaymentType.CREDIT}')`,
         );
         queryRunner.commitTransaction();
         return { message: 'Wallet Top-up Successful' };
@@ -266,6 +269,59 @@ export class PaymentService {
         'Unable to retrieve wallet transactions',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    }
+  }
+
+  async processWalletPayment(payload: ProcessWalletPaymentDto): Promise<any> {
+    const queryRunner = this.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    const { amount, recipientId, type, giverId } = payload;
+    try {
+      /** Giver Updates  **/
+      const updateGiverAvailableBalance = queryRunner.query(
+        `UPDATE users SET available_balance = available_balance - ${amount} WHERE id = ${giverId}`,
+      );
+      const saveGiverWalletHistory = queryRunner.query(
+        `INSERT INTO wallet_history (user_id, amount, type, payment_type) 
+                VALUES (${giverId}, ${amount}, '${type}', '${PaymentType.DEBIT}')`,
+      );
+      const promises: any[] = [
+        updateGiverAvailableBalance,
+        saveGiverWalletHistory,
+      ];
+      /** Recipient Updates  **/
+      const fee = calculateFeeFromAmount(amount);
+      const balance = amount - fee;
+      if (type === TransactionTypes.SUBSCRIPTION) {
+        const updateRecipientPendingBalance = queryRunner.query(
+          `UPDATE users SET balance_on_hold =  balance_on_hold + ${balance} WHERE id = ${recipientId}`,
+        );
+        const saveRecipientLedgerRecord = queryRunner.query(
+          `INSERT INTO wallet_ledger (user_id, amount) 
+                VALUES (${recipientId}, ${balance})`,
+        );
+        promises.push(updateRecipientPendingBalance);
+        promises.push(saveRecipientLedgerRecord);
+      } else {
+        const updateRecipientAvailableBalance = queryRunner.query(
+          `UPDATE users SET available_balance =  available_balance + ${balance} WHERE id = ${recipientId}`,
+        );
+        promises.push(updateRecipientAvailableBalance);
+      }
+
+      const saveRecipientWalletHistory = queryRunner.query(
+        `INSERT INTO wallet_history (user_id, amount, type, fee, initiator_id, payment_type) 
+                VALUES (${recipientId}, ${amount}, '${type}', ${fee}, ${giverId}, '${PaymentType.CREDIT}')`,
+      );
+      promises.push(saveRecipientWalletHistory);
+      await Promise.all(promises);
+      await queryRunner.commitTransaction();
+    } catch (e) {
+      this.logger.error(`Wallet Payment Failed: ${JSON.stringify(e)}`);
+      await queryRunner.rollbackTransaction();
+    } finally {
+      await queryRunner.release();
     }
   }
 }

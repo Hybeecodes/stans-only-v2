@@ -14,6 +14,7 @@ import { WalletHistoryRepository } from '../../repositories/wallet-history.repos
 import { WalletLedgerRepository } from '../../repositories/wallet-ledger.repository';
 import { TransactionTypes } from '../../entities/transaction.entity';
 import { calculateFeeFromAmount } from '../../utils/helpers';
+import { PaymentType } from '../../entities/wallet-history.entity';
 
 @Injectable()
 export class SubscriptionService {
@@ -70,8 +71,8 @@ export class SubscriptionService {
         `UPDATE users SET available_balance = available_balance - ${subscriptionFee} WHERE id = ${subscriber.id}`,
       );
       const saveSubscriberWalletHistory = queryRunner.query(
-        `INSERT INTO wallet_history (user_id, amount, type) 
-                VALUES (${subscriber.id}, ${subscriptionFee}, '${TransactionTypes.SUBSCRIPTION}')`,
+        `INSERT INTO wallet_history (user_id, amount, type, payment_type) 
+                VALUES (${subscriber.id}, ${subscriptionFee}, '${TransactionTypes.SUBSCRIPTION}', '${PaymentType.DEBIT}')`,
       );
       const promises: any[] = [
         updateAvailableBalance,
@@ -89,8 +90,8 @@ export class SubscriptionService {
                 VALUES (${subscribee.id}, ${balance})`,
       );
       const saveSubscribeeWalletHistory = queryRunner.query(
-        `INSERT INTO wallet_history (user_id, amount, type, fee, initiator_id) 
-                VALUES (${subscribee.id}, ${subscriptionFee}, '${TransactionTypes.SUBSCRIPTION}', ${fee}, ${subscriber.id})`,
+        `INSERT INTO wallet_history (user_id, amount, type, fee, initiator_id, payment_type) 
+                VALUES (${subscribee.id}, ${subscriptionFee}, '${TransactionTypes.SUBSCRIPTION}', ${fee}, ${subscriber.id}, '${PaymentType.CREDIT}')`,
       );
       promises.push(saveLedgerRecord);
       promises.push(updatePendingBalance);

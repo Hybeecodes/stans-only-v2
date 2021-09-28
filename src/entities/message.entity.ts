@@ -26,6 +26,15 @@ export class Message extends BaseEntity {
   body: string;
 
   @Column('boolean', { default: false })
+  isPaid: boolean;
+
+  @Column('boolean', { default: true })
+  canView: boolean;
+
+  @Column('decimal', { default: '0.0', precision: 12, scale: 2 })
+  cost: number;
+
+  @Column('boolean', { default: false })
   isRead: boolean;
 
   @ManyToOne(() => Conversation, (conversation) => conversation.messages)

@@ -11,6 +11,8 @@ export enum TransactionTypes {
   WITHDRAWAL = 'WITHDRAWAL',
   SUBSCRIPTION = 'SUBSCRIPTION',
   TIP = 'TIP',
+  PAY_PER_VIEW = 'PAY_PER_VIEW',
+  PAY_PER_VIEW_DM = 'PAY_PER_VIEW_DM',
 }
 
 export enum PaymentStatus {

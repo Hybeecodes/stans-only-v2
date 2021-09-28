@@ -19,6 +19,7 @@ import { NewNotificationDto } from '../notifications/dtos/new-notification.dto';
 import { NotificationType } from '../../entities/notification.entity';
 import { TipDto } from './dtos/tip.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { PaymentType } from '../../entities/wallet-history.entity';
 
 @Injectable()
 export class UsersService {
@@ -435,8 +436,8 @@ export class UsersService {
         `UPDATE users SET available_balance = available_balance - ${amount} WHERE id = ${giverId}`,
       );
       const saveSubscriberWalletHistory = queryRunner.query(
-        `INSERT INTO wallet_history (user_id, amount, type) 
-                VALUES (${giverId}, ${amount}, '${TransactionTypes.TIP}')`,
+        `INSERT INTO wallet_history (user_id, amount, type, payment_type) 
+                VALUES (${giverId}, ${amount}, '${TransactionTypes.TIP}', '${PaymentType.DEBIT}')`,
       );
       const promises: any[] = [
         updateAvailableBalance,
@@ -450,8 +451,8 @@ export class UsersService {
         `UPDATE users SET available_balance =  available_balance + ${balance} WHERE id = ${recipient.id}`,
       );
       const saveSubscribeeWalletHistory = queryRunner.query(
-        `INSERT INTO wallet_history (user_id, amount, type, fee, initiator_id) 
-                VALUES (${recipient.id}, ${amount}, '${TransactionTypes.TIP}', ${fee}, ${giverId})`,
+        `INSERT INTO wallet_history (user_id, amount, type, fee, initiator_id, payment_type) 
+                VALUES (${recipient.id}, ${amount}, '${TransactionTypes.TIP}', ${fee}, ${giverId}, '${PaymentType.CREDIT}')`,
       );
       promises.push(updateCreatorAvailableBalance);
       promises.push(saveSubscribeeWalletHistory);

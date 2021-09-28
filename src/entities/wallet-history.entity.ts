@@ -3,6 +3,11 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
 import { User } from './user.entity';
 import { Transaction, TransactionTypes } from './transaction.entity';
 
+export enum PaymentType {
+  CREDIT = 'CREDIT',
+  DEBIT = 'DEBIT',
+}
+
 @Entity('wallet_history')
 export class WalletHistory extends BaseEntity {
   @Column({ name: 'user_id' })
@@ -31,6 +36,9 @@ export class WalletHistory extends BaseEntity {
 
   @Column('enum', { enum: TransactionTypes })
   type: TransactionTypes;
+
+  @Column('enum', { enum: PaymentType, nullable: true })
+  paymentType: PaymentType;
 
   @Column('decimal', {
     precision: 12,

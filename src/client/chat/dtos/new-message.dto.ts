@@ -1,4 +1,13 @@
-import { IsDefined, IsEnum, IsOptional, IsNotEmpty, IsArray, IsObject } from 'class-validator';
+import {
+  IsDefined,
+  IsOptional,
+  IsNotEmpty,
+  IsArray,
+  IsObject,
+  IsBoolean,
+  ValidateIf,
+  IsNumber,
+} from 'class-validator';
 import { MediaObject } from 'src/client/posts/dto/create-post.dto';
 
 export class NewMessageDto {
@@ -13,4 +22,13 @@ export class NewMessageDto {
   @IsArray()
   @IsObject({ each: true })
   media: MediaObject[];
+
+  @IsOptional()
+  @IsBoolean()
+  isPaid = true;
+
+  @ValidateIf((o) => o.isPaid === true)
+  @IsDefined()
+  @IsNumber()
+  cost: number;
 }

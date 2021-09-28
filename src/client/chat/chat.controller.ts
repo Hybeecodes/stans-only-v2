@@ -40,9 +40,11 @@ export class ChatController {
   @Get('conversations/:conversationId/messages')
   async getConversationMessages(
     @Query() queryData: BaseQueryDto,
+    @LoggedInUser('id') userId: number,
     @Param('conversationId') conversationId: number,
   ): Promise<SuccessResponseDto> {
     const response = await this.chatService.getMesssagesByConversationId(
+      userId,
       conversationId,
       queryData,
     );
@@ -89,5 +91,14 @@ export class ChatController {
   ): Promise<SuccessResponseDto> {
     const response = await this.chatService.deleteMessage(messageId);
     return new SuccessResponseDto('Message Deleted Successfully', response);
+  }
+
+  @Post('messages/:messageId/pay')
+  async payForMessage(
+    @LoggedInUser('id') userId: number,
+    @Param('messageId') messageId: number,
+  ): Promise<SuccessResponseDto> {
+    const response = await this.chatService.payForMessage(userId, messageId);
+    return new SuccessResponseDto('Payment Successful', response);
   }
 }
