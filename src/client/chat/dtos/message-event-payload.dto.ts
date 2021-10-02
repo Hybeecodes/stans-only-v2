@@ -38,7 +38,7 @@ export class MessageEventPayload {
       message.media &&
       message.media.map((m) => {
         return {
-          url: this.canView ? m.url : null,
+          url: m.url,
           mediaType: m.mediaType,
         };
       });
