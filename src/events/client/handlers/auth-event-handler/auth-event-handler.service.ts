@@ -2,12 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Events } from '../../events.enum';
 import { User } from '../../../../entities/user.entity';
-import { EmailService } from '../../../../shared/services/notification/email/email.service';
+import { NotificationService } from '../../../../shared/services/notification/notification.service';
 
 @Injectable()
 export class AuthEventHandlerService {
   private readonly logger: Logger;
-  constructor(private readonly emailService: EmailService) {
+  constructor(private readonly emailService: NotificationService) {
     this.logger = new Logger(AuthEventHandlerService.name);
   }
 

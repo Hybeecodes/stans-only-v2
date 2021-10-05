@@ -3,7 +3,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { EmailService } from './shared/services/notification/email/email.service';
 import { NotificationModule } from './shared/services/notification/notification.module';
 import { TypeOrmOptionsService } from './typeorm/typeorm-options.service';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
@@ -15,6 +14,7 @@ import { HttpErrorFilter } from './shared/http-error-filter';
 import { FileModule } from './file/file.module';
 import { PaymentModule } from './payment/payment.module';
 import { CronModule } from './cron/cron.module';
+import { MailjetService } from './shared/services/notifications/email/mailjet/mailjet.service';
 
 @Module({
   imports: [
@@ -52,7 +52,6 @@ import { CronModule } from './cron/cron.module';
   controllers: [AppController],
   providers: [
     AppService,
-    EmailService,
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,
@@ -62,6 +61,8 @@ import { CronModule } from './cron/cron.module';
       provide: APP_FILTER,
       useClass: HttpErrorFilter,
     },
+
+    MailjetService,
   ],
 })
 export class AppModule {}
