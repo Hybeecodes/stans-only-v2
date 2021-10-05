@@ -1,6 +1,4 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import * as handlebars from 'handlebars';
-import * as fs from 'fs';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '../../../entities/user.entity';
 import { ConfigService } from '@nestjs/config';
@@ -19,10 +17,6 @@ export class NotificationService {
   ) {
     this.logger = new Logger(NotificationService.name);
     this.appBaseUrl = this.configService.get('APP_BASE_URL');
-  }
-  private static async getTemplate(templateName) {
-    const data = fs.readFileSync(`templates/${templateName}.hbs`).toString();
-    return handlebars.compile(data);
   }
 
   async sendNewUserEmail(user: User): Promise<void> {
@@ -43,12 +37,6 @@ export class NotificationService {
         },
         template: 'newUser',
       });
-      // await this.sendGridService.send({
-      //   to: email,
-      //   html: template(),
-      //   from: { name: 'StansOnly', email: 'support@stansonly.com' },
-      //   subject: '',
-      // });
       this.logger.log(`Welcome Email Sent to ${email}`);
     } catch (e) {
       this.logger.error(e.message);
@@ -63,7 +51,19 @@ export class NotificationService {
         resetToken,
       });
       console.log(resetHash);
-      // const url = `${this.appBaseUrl}/resetpassword/${resetHash}`;
+      const url = `${this.appBaseUrl}/resetpassword/${resetHash}`;
+
+      await this.emailService.sendMail({
+        recipients: [email],
+        subject: 'StansOnly - Password Reset Request',
+        templateData: {
+          name: `${firstName}`,
+          logoUrl:
+            'https://res.cloudinary.com/stansonlycloud/image/upload/v1600877280/stansonly/Stansoly_new_blue_2x_1_pxgmhr.png',
+          url,
+        },
+        template: 'forgotpassword',
+      });
       // await this.sendGridService.send({
       //   to: email,
       //   html: template({

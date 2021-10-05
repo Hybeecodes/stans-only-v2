@@ -95,7 +95,7 @@ export class AuthService {
     const user = await this.userRepository.findUserByEmail(email);
     if (!user) {
       throw new HttpException(
-        'User with email_sendgrid not Found',
+        'User with emailnot Found',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -164,7 +164,7 @@ export class AuthService {
     const user = await this.userRepository.findUserByEmail(email);
     if (!user) {
       throw new HttpException(
-        'User with email_sendgrid not Found',
+        'User with email not Found',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

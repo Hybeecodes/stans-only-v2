@@ -3,7 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { NotificationService } from './notification.service';
 import { Injectables } from '../../constants/injectables.enum';
-import { SesService } from './email/ses/ses.service';
+import { MailjetService } from '../notifications/email/mailjet/mailjet.service';
 
 @Module({
   imports: [
@@ -21,7 +21,7 @@ import { SesService } from './email/ses/ses.service';
   ],
   providers: [
     NotificationService,
-    { provide: Injectables.EMAIL_SERVICE, useClass: SesService },
+    { provide: Injectables.EMAIL_SERVICE, useClass: MailjetService },
   ],
   exports: [NotificationService],
 })

@@ -3,7 +3,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { NotificationService } from './shared/services/notification/notification.service';
 import { NotificationModule } from './shared/services/notification/notification.module';
 import { TypeOrmOptionsService } from './typeorm/typeorm-options.service';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
@@ -14,6 +13,7 @@ import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { HttpErrorFilter } from './shared/http-error-filter';
 import { FileModule } from './file/file.module';
 import { PaymentModule } from './payment/payment.module';
+import { MailjetService } from './shared/services/notifications/email/mailjet/mailjet.service';
 
 @Module({
   imports: [
@@ -59,6 +59,8 @@ import { PaymentModule } from './payment/payment.module';
       provide: APP_FILTER,
       useClass: HttpErrorFilter,
     },
+
+    MailjetService,
   ],
 })
 export class AppModule {}
