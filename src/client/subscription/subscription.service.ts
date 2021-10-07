@@ -15,6 +15,7 @@ import { WalletLedgerRepository } from '../../repositories/wallet-ledger.reposit
 import { TransactionTypes } from '../../entities/transaction.entity';
 import { calculateFeeFromAmount } from '../../utils/helpers';
 import { PaymentType } from '../../entities/wallet-history.entity';
+import { SubscriptionType } from '../../entities/user.entity';
 
 @Injectable()
 export class SubscriptionService {
@@ -72,7 +73,13 @@ export class SubscriptionService {
           new Date(subscription.expiryDate).getTime() >= new Date().getTime();
       const promises: any[] = [];
       ///// Subscriber Updates
-      if (!(subscription && isSubscriptionActive)) {
+      if (
+        !(
+          subscription &&
+          isSubscriptionActive &&
+          subscribee.subscriptionType === SubscriptionType.PAID
+        )
+      ) {
         const updateAvailableBalance = queryRunner.query(
           `UPDATE users SET available_balance = available_balance - ${subscriptionFee} WHERE id = ${subscriber.id}`,
         );
