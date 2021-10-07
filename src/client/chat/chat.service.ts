@@ -52,6 +52,15 @@ export class ChatService {
     }
     const sender = await this.usersService.findUserById(userId);
     const recipient = await this.usersService.findUserById(recipientId);
+    if (!sender.isContentCreator && isPaid) {
+      this.logger.error(
+        `pay in the chat feature is only available to content creators: ${recipientId}`,
+      );
+      throw new HttpException(
+        'Sorry, pay in the chat feature is only available to content creators',
+        HttpStatus.FORBIDDEN,
+      );
+    }
     try {
       const response = await this.conversationRepository.query(`
         SELECT DISTINCT conversation_id as conversationId FROM conversations_users
