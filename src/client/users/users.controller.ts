@@ -25,6 +25,7 @@ import { GetPostsQueryDto } from '../posts/dto/get-posts-query.dto';
 import { BookmarksService } from '../bookmarks/bookmarks.service';
 import { PaymentService } from '../../payment/payment.service';
 import { TipDto } from './dtos/tip.dto';
+import { UpdateUserProfileDto } from './dtos/update-user-profile.dto';
 
 @Controller('users')
 export class UsersController {
@@ -45,6 +46,15 @@ export class UsersController {
   ) {
     const response = await this.usersService.getUserProfile(username, userId);
     return new SuccessResponseDto('Successful', response);
+  }
+
+  @Put('profile')
+  async updateUserProfile(
+    @Body() input: UpdateUserProfileDto,
+    @LoggedInUser('id') userId: number,
+  ) {
+    const response = await this.usersService.updateUserProfile(userId, input);
+    return new SuccessResponseDto('Profile Update Successful', response);
   }
 
   @Get('bvn')
