@@ -66,51 +66,53 @@ export class SubscriptionService {
       const subscription = await this.subscriptionRepository.findOne({
         where: { subscribee, subscriber },
       });
+      let isSubscriptionActive = false;
+      if (subscription)
+        isSubscriptionActive =
+          new Date(subscription.expiryDate).getTime() >= new Date().getTime();
+      const promises: any[] = [];
       ///// Subscriber Updates
-      const updateAvailableBalance = queryRunner.query(
-        `UPDATE users SET available_balance = available_balance - ${subscriptionFee} WHERE id = ${subscriber.id}`,
-      );
-      const saveSubscriberWalletHistory = queryRunner.query(
-        `INSERT INTO wallet_history (user_id, amount, type, payment_type) 
+      if (!(subscription && isSubscriptionActive)) {
+        const updateAvailableBalance = queryRunner.query(
+          `UPDATE users SET available_balance = available_balance - ${subscriptionFee} WHERE id = ${subscriber.id}`,
+        );
+        const saveSubscriberWalletHistory = queryRunner.query(
+          `INSERT INTO wallet_history (user_id, amount, type, payment_type) 
                 VALUES (${subscriber.id}, ${subscriptionFee}, '${TransactionTypes.SUBSCRIPTION}', '${PaymentType.DEBIT}')`,
-      );
-      const promises: any[] = [
-        updateAvailableBalance,
-        saveSubscriberWalletHistory,
-      ];
+        );
+        promises.push(updateAvailableBalance);
+        promises.push(saveSubscriberWalletHistory);
 
-      /// Creator Updates
-      const fee = calculateFeeFromAmount(subscriptionFee);
-      const balance = subscriptionFee - fee;
-      const updatePendingBalance = queryRunner.query(
-        `UPDATE users SET balance_on_hold =  balance_on_hold + ${balance} WHERE id = ${subscribee.id}`,
-      );
-      const saveLedgerRecord = queryRunner.query(
-        `INSERT INTO wallet_ledger (user_id, amount) 
+        /// Creator Updates
+        const fee = calculateFeeFromAmount(subscriptionFee);
+        const balance = subscriptionFee - fee;
+        const updatePendingBalance = queryRunner.query(
+          `UPDATE users SET balance_on_hold =  balance_on_hold + ${balance} WHERE id = ${subscribee.id}`,
+        );
+        const saveLedgerRecord = queryRunner.query(
+          `INSERT INTO wallet_ledger (user_id, amount) 
                 VALUES (${subscribee.id}, ${balance})`,
-      );
-      const saveSubscribeeWalletHistory = queryRunner.query(
-        `INSERT INTO wallet_history (user_id, amount, type, fee, initiator_id, payment_type) 
+        );
+        const saveSubscribeeWalletHistory = queryRunner.query(
+          `INSERT INTO wallet_history (user_id, amount, type, fee, initiator_id, payment_type) 
                 VALUES (${subscribee.id}, ${subscriptionFee}, '${TransactionTypes.SUBSCRIPTION}', ${fee}, ${subscriber.id}, '${PaymentType.CREDIT}')`,
-      );
-      promises.push(saveLedgerRecord);
-      promises.push(updatePendingBalance);
-      promises.push(saveSubscribeeWalletHistory);
-      const now = new Date();
-      let expiry: Date;
-      if (now.getMonth() == 11) {
-        expiry = new Date(now.getFullYear() + 1, 0, 1);
-      } else {
-        expiry = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        );
+        promises.push(saveLedgerRecord);
+        promises.push(updatePendingBalance);
+        promises.push(saveSubscribeeWalletHistory);
       }
+      const today = new Date();
+      const expiry = new Date(new Date().setDate(today.getDate() + 30));
 
+      let newSub = false;
       if (subscription) {
-        if (subscription.isDeleted) {
-          const updateSubscription =
-            queryRunner.query(`UPDATE subscriptions SET is_deleted = false
-            AND expiry_date = '${expiry.toISOString()}' WHERE id = ${
+        if (subscription.isDeleted || !isSubscriptionActive) {
+          const updateSubscription = queryRunner.query(
+            `UPDATE subscriptions SET is_deleted = 'false', expiry_date = '${expiry.toISOString()}' WHERE id = ${
               subscription.id
-            }`);
+            }`,
+          );
+          newSub = true;
           promises.push(updateSubscription);
         }
       } else {
@@ -119,21 +121,24 @@ export class SubscriptionService {
             subscribee.id
           }, ${subscriber.id}, '${expiry.toISOString()}')`,
         );
+        newSub = true;
         promises.push(saveSubscription);
       }
 
       await Promise.all(promises);
       console.log('Committing transaction');
       await queryRunner.commitTransaction();
-      this.eventEmitter.emit(Events.ON_NEW_SUBSCRIPTION, subscribee.id);
+      if (newSub) {
+        this.eventEmitter.emit(Events.ON_NEW_SUBSCRIPTION, subscribee.id);
 
-      const notification = new NewNotificationDto();
-      notification.senderId = subscriberId;
-      notification.recipientId = subscribee.id;
-      notification.message = `${subscriber.userName} Subscribed to you`;
-      notification.type = NotificationType.SUBSCRIPTION;
-      // TODO:: Send Email to Content Creator about the operation
-      this.eventEmitter.emit(Events.NEW_NOTIFICATION, notification);
+        const notification = new NewNotificationDto();
+        notification.senderId = subscriberId;
+        notification.recipientId = subscribee.id;
+        notification.message = `${subscriber.userName} Subscribed to you`;
+        notification.type = NotificationType.SUBSCRIPTION;
+        // TODO:: Send Email to Content Creator about the operation
+        this.eventEmitter.emit(Events.NEW_NOTIFICATION, notification);
+      }
     } catch (e) {
       console.log('something is here');
       await queryRunner.rollbackTransaction();
