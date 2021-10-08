@@ -50,6 +50,12 @@ export class ChatService {
         HttpStatus.BAD_REQUEST,
       );
     }
+    if (media.length > 5) {
+      throw new HttpException(
+        'Maximum of 5 Media Expected',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     const sender = await this.usersService.findUserById(userId);
     const recipient = await this.usersService.findUserById(recipientId);
     if (!sender.isContentCreator && isPaid) {

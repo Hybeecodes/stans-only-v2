@@ -198,12 +198,17 @@ export class UsersService {
     userId: number,
     input: UpdateUserAccountDetailsDto,
   ): Promise<void> {
-    if (input.userName.trim() === '') {
+    const { userName, subscriptionFee, phoneNumber } = input;
+    if (userName && userName.trim() === '') {
       throw new HttpException('Invalid Username', HttpStatus.BAD_REQUEST);
     }
     const user = await this.findUserById(userId);
     try {
-      input.subscriptionFee = user.isContentCreator
+      const uploadPayload: any = {};
+      if (userName) uploadPayload.userName = userName;
+      if (subscriptionFee) uploadPayload.subscriptionFee = subscriptionFee;
+      if (phoneNumber) uploadPayload.phoneNumber = phoneNumber;
+      uploadPayload.subscriptionFee = user.isContentCreator
         ? input.subscriptionFee
         : 0.0;
       await this.userRepository.update({ id: userId }, { ...input });
