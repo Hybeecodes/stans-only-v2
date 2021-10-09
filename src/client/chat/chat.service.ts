@@ -50,7 +50,7 @@ export class ChatService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    if (media.length > 5) {
+    if (media && media.length > 5) {
       throw new HttpException(
         'Maximum of 5 Media Expected',
         HttpStatus.BAD_REQUEST,
