@@ -420,6 +420,12 @@ export class UsersService {
         'Invalid Action: You can not tip yourself',
         HttpStatus.FORBIDDEN,
       );
+    if (!recipient.isContentCreator) {
+      throw new HttpException(
+        'Sorry, only content creators can receive tips',
+        HttpStatus.FORBIDDEN,
+      );
+    }
     const { amount } = payload;
     const giver = await this.findUserById(giverId);
     if (Number(giver.availableBalance) < Number(amount)) {

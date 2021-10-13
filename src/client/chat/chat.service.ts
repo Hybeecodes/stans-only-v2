@@ -343,7 +343,7 @@ WHERE user_id = ${userId} || user_id = ${user2.id} GROUP BY conversationId HAVIN
       );
     }
     const sender = await this.usersService.findUserById(message.senderId);
-    if (user.availableBalance < message.cost) {
+    if (Number(user.availableBalance) < Number(message.cost)) {
       this.logger.error(
         `Insufficient wallet balance, please top-up your wallet`,
       );
