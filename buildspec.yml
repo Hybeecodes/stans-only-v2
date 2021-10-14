@@ -46,5 +46,6 @@ phases:
 artifacts:
   files:
     - imagedefinitions.json
+    - deploy
   #discard-paths: yes
   #base-directory: location
