@@ -48,6 +48,7 @@ export class SubscriptionService {
       );
     const subscriber = await this.usersService.findUserById(subscriberId);
     if (
+      subscribee.subscriptionType === SubscriptionType.PAID &&
       Number(subscriber.availableBalance) < Number(subscribee.subscriptionFee)
     ) {
       this.logger.error(
