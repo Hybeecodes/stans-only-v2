@@ -7,6 +7,7 @@ import {
   IsBoolean,
   ValidateIf,
   IsNumber,
+  Min,
 } from 'class-validator';
 import { MediaObject } from 'src/client/posts/dto/create-post.dto';
 
@@ -30,5 +31,6 @@ export class NewMessageDto {
   @ValidateIf((o) => o.isPaid === true)
   @IsDefined()
   @IsNumber()
+  @Min(0, { message: 'You can not set a negative cost' })
   cost: number;
 }
