@@ -2,7 +2,14 @@ version: 0.2
 
 env:
   variables:
-    NODE_ENV: "${env}"
+    AWS_ACCOUNT_ID : "814710287742"
+    IMAGE_REPO_NAME : "stans-only-api"
+    APP_NAME : "stans-only-api"
+    AWS_DEFAULT_REGION : "eu-west-1"
+    IMAGE_TAG : "latest"
+    #parameter-store:
+    # key: "value"
+    # key: "value"
 
 phases:
   install:
@@ -13,14 +20,28 @@ phases:
       # - npm run lint
   pre_build:
     commands:
+      - echo Logging in to Amazon ECR...
+      - eval $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
       - npm i
-#      - npm run test
+      # - command
+      # - command
   build:
     commands:
+      - echo Build started on `date`
+      - printenv
       - npm run build
+      # - command
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
+      - aws ecr get-login --no-include-email_sendgrid --region $AWS_DEFAULT_REGION
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.eu-west-1.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+      - echo Writing image definitions file...
+      - printf '[{"name":"stans-only-api","imageUri":"%s"}]' $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG > imagedefinitions.json
+      # - command
 artifacts:
   files:
-    - "**/*"
-  base-directory: .
-  location: arn:aws:s3:::stansonly
-
+    - imagedefinitions.json
+  #discard-paths: yes
+  #base-directory: location
