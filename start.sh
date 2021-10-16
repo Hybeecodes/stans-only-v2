@@ -1,6 +1,6 @@
 #!/bin/sh
 #RUN MIGRATION COMMAND HERE
-#yarn run migration:up
+npm run migration:up
 
-echo "START SERVER";
-yarn run start:prod
+#echo "START SERVER";
+#yarn run start:prod

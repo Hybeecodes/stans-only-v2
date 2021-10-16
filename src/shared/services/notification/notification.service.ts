@@ -21,7 +21,7 @@ export class NotificationService {
 
   async sendNewUserEmail(user: User): Promise<void> {
     try {
-      // send the email_sendgrid with
+      // send the email with
       const { email, firstName } = user;
       const token = this.jwtService.sign({ email });
       console.log(token);
