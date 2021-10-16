@@ -14,7 +14,7 @@ phases:
   pre_build:
     commands:
       - npm i
-      - npm run test
+#      - npm run test
   build:
     commands:
       - npm run build
