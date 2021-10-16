@@ -22,5 +22,5 @@ artifacts:
   files:
     - "**/*"
   base-directory: .
-  location: stansonly
+  location: arn:aws:s3:::stansonly
 
