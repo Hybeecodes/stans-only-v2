@@ -21,5 +21,6 @@ phases:
 artifacts:
   files:
     - "**/*"
-  name: "web-dist-${env}"
-  base-directory: stansonly
+  base-directory: .
+  location: stansonly
+
