@@ -152,6 +152,17 @@ export class PaymentService {
   async initiateWithdrawal(payload: WithdrawalDto, userId: number) {
     const user = await this.usersService.findUserById(userId);
     const bank = await this.bankService.getBankById(user, payload.accountId);
+    if (user.isWalletLocked) {
+      this.logger.log(
+        'User tried to initiate another withdrawal when one is already in progress: [Fraud Alert]',
+      );
+      throw new HttpException(
+        'Please hold on, you have a pending withdrawal',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+    // lock wallet
+    await this.usersService.lockUserWallet(userId);
     const reference = `WITH_${Date.now()}`;
     // log withdrawal transaction
     const { amount } = payload;
@@ -230,6 +241,7 @@ export class PaymentService {
         `INSERT INTO wallet_history (user_id, amount, type) 
                 VALUES (${transaction.user.id}, ${amount}, '${TransactionTypes.WITHDRAWAL}')`,
       );
+      await this.usersService.releaseUserWallet(transaction.user.id);
       queryRunner.commitTransaction();
     } catch (e) {
       await queryRunner.rollbackTransaction();

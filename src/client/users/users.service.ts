@@ -412,6 +412,30 @@ export class UsersService {
     }
   }
 
+  async lockUserWallet(userId: number): Promise<void> {
+    try {
+      await this.userRepository.query(
+        `UPDATE users SET is_wallet_locked =1 WHERE id = ${userId}`,
+      );
+    } catch (e) {
+      this.logger.error(
+        `decrementBlockedUsers operation Failed: ${JSON.stringify(e.message)}`,
+      );
+    }
+  }
+
+  async releaseUserWallet(userId: number): Promise<void> {
+    try {
+      await this.userRepository.query(
+        `UPDATE users SET is_wallet_locked = 0 WHERE id = ${userId}`,
+      );
+    } catch (e) {
+      this.logger.error(
+        `decrementBlockedUsers operation Failed: ${JSON.stringify(e.message)}`,
+      );
+    }
+  }
+
   async tipUser(
     giverId: number,
     recipientName: string,

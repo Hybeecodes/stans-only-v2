@@ -119,6 +119,9 @@ export class User {
   @Column('boolean', { nullable: false, default: false })
   isDeleted: boolean;
 
+  @Column('boolean', { nullable: false, default: false })
+  isWalletLocked: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 
