@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserRepository } from '../../repositories/user.repository';
 import { UserProfileDto } from './dtos/user-profile.dto';
-import { User } from '../../entities/user.entity';
+import { SubscriptionType, User } from '../../entities/user.entity';
 import { StatusType } from '../../shared/constants/status-type.enum';
 import { UpdateNotificationSettingsDto } from './dtos/update-notification-settings.dto';
 import { NotificationSettingsResponseDto } from './dtos/notification-settings-response.dto';
@@ -206,7 +206,10 @@ export class UsersService {
     try {
       const uploadPayload: any = {};
       if (userName) uploadPayload.userName = userName;
-      if (subscriptionFee) uploadPayload.subscriptionFee = subscriptionFee;
+      if (subscriptionFee) {
+        uploadPayload.subscriptionFee = subscriptionFee;
+        uploadPayload.subscriptionType = SubscriptionType.PAID;
+      }
       if (phoneNumber) uploadPayload.phoneNumber = phoneNumber;
       uploadPayload.subscriptionFee = user.isContentCreator
         ? input.subscriptionFee
