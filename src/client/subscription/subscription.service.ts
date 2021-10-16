@@ -78,7 +78,7 @@ export class SubscriptionService {
         !(
           subscription &&
           isSubscriptionActive &&
-          subscribee.subscriptionType === SubscriptionType.PAID
+          subscribee.subscriptionType === SubscriptionType.FREE
         )
       ) {
         const updateAvailableBalance = queryRunner.query(
