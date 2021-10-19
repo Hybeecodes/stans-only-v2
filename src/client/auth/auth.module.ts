@@ -20,7 +20,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
         // "jsonwebtoken" option to sign
         secret: config.get<string>('JWT_SECRET'),
         signOptions: {
-          expiresIn: '1h',
+          expiresIn: config.get<string>('JWT_EXPIRES_IN'),
         },
       }),
     }),
