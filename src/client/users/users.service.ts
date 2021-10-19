@@ -214,7 +214,7 @@ export class UsersService {
       uploadPayload.subscriptionFee = user.isContentCreator
         ? input.subscriptionFee
         : 0.0;
-      await this.userRepository.update({ id: userId }, { ...input });
+      await this.userRepository.update({ id: userId }, { ...uploadPayload });
     } catch (e) {
       this.logger.error(
         `Unable to Update User Account Details: ${JSON.stringify(e.message)}`,
