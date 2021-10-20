@@ -189,6 +189,7 @@ export class UsersController {
     @Param('username') username: string,
     @Query() queryData: GetPostsQueryDto,
   ): Promise<SuccessResponseDto> {
+    // check if current user is subscribed
     const response = await this.postsService.findPostsByUsername(
       username,
       queryData,

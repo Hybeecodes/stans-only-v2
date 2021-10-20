@@ -233,14 +233,16 @@ export class PaymentService {
       transaction.meta = JSON.stringify(payload.data);
       await this.transactionRepository.save(transaction);
       // update wallet if it was successful
-      await this.usersService.decrementAvailableBalance(
-        transaction.user.id,
-        amount,
-      );
-      queryRunner.query(
-        `INSERT INTO wallet_history (user_id, amount, type) 
+      if (transaction.paymentStatus === PaymentStatus.COMPLETED) {
+        await this.usersService.decrementAvailableBalance(
+          transaction.user.id,
+          amount,
+        );
+        queryRunner.query(
+          `INSERT INTO wallet_history (user_id, amount, type) 
                 VALUES (${transaction.user.id}, ${amount}, '${TransactionTypes.WITHDRAWAL}')`,
-      );
+        );
+      }
       await this.usersService.releaseUserWallet(transaction.user.id);
       queryRunner.commitTransaction();
     } catch (e) {

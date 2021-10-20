@@ -75,11 +75,8 @@ export class SubscriptionService {
       const promises: any[] = [];
       ///// Subscriber Updates
       if (
-        !(
-          subscription &&
-          isSubscriptionActive &&
-          subscribee.subscriptionType === SubscriptionType.FREE
-        )
+        !(subscription && isSubscriptionActive) &&
+        subscribee.subscriptionType === SubscriptionType.PAID
       ) {
         const updateAvailableBalance = queryRunner.query(
           `UPDATE users SET available_balance = available_balance - ${subscriptionFee} WHERE id = ${subscriber.id}`,
