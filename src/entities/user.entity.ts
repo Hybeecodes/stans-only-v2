@@ -37,8 +37,8 @@ export class User {
   email: string;
 
   @Exclude()
-  @Column('varchar', { nullable: false, length: 255 })
-  password: string;
+  @Column('varchar', { nullable: true, length: 255 })
+  password?: string;
 
   @Column('varchar', { nullable: true, length: 255 })
   phoneNumber: string;
@@ -120,6 +120,9 @@ export class User {
   isDeleted: boolean;
 
   @Column('boolean', { nullable: false, default: false })
+  isSocialAuthUser: boolean;
+
+  @Column('boolean', { nullable: false, default: false })
   isWalletLocked: boolean;
 
   @CreateDateColumn()
@@ -130,7 +133,7 @@ export class User {
 
   @BeforeInsert()
   hashPassword() {
-    this.password = hashPassword(this.password);
+    if (this.password) this.password = hashPassword(this.password);
   }
 
   isPasswordValid(password: string): boolean {
@@ -153,6 +156,7 @@ export class User {
       coverPictureUrl,
       profilePictureUrl,
       isContentCreator,
+      isSocialAuthUser,
     } = this;
     return {
       id,
@@ -165,6 +169,7 @@ export class User {
       coverPictureUrl,
       profilePictureUrl,
       isContentCreator,
+      isSocialAuthUser,
     };
   }
 }
@@ -180,6 +185,7 @@ export interface UserDto {
   coverPictureUrl: string;
   profilePictureUrl: string;
   isContentCreator: boolean;
+  isSocialAuthUser: boolean;
 }
 
 export interface UserLoginResponse extends UserDto {

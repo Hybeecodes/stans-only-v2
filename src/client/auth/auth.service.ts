@@ -227,7 +227,7 @@ export class AuthService {
         lastName,
         profilePictureUrl: profilePicUrl,
         userName,
-        password: '',
+        isSocialAuthUser: true,
         isConfirmed: true,
         status: StatusType.ACTIVE,
       });
@@ -246,6 +246,9 @@ export class AuthService {
     const user = await this.userRepository.findUserById(userId);
     if (!user) {
       throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+    }
+    if (user.isSocialAuthUser) {
+      throw new HttpException('Invalid Operation', HttpStatus.FORBIDDEN);
     }
     if (!comparePassword(oldPassword, user.password)) {
       throw new HttpException('Invalid Old Password', HttpStatus.NOT_FOUND);
