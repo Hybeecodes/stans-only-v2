@@ -21,6 +21,7 @@ export class UserProfileDto implements Partial<User> {
   public emailNotificationStatus: boolean;
   public pushNotificationStatus: boolean;
   public isSubscribedToUser: boolean;
+  public isSocialAuthUser: boolean;
 
   constructor(user: User) {
     this.id = user.id;
@@ -42,5 +43,6 @@ export class UserProfileDto implements Partial<User> {
     this.dateOfBirth = user.dateOfBirth;
     this.emailNotificationStatus = user.emailNotificationStatus;
     this.pushNotificationStatus = user.pushNotificationStatus;
+    this.isSocialAuthUser = user.isSocialAuthUser;
   }
 }
