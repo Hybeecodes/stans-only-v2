@@ -184,7 +184,7 @@ WHERE user_id = ${userId} || user_id = ${recipientId} GROUP BY conversationId HA
         .andWhere('conversation.is_deleted = false')
         .orderBy('lastMessage.created_at', 'DESC')
         .offset(offset || 0)
-        .limit(limit || 10)
+        .limit(limit * 2 || 20)
         .getManyAndCount();
       return {
         count,
