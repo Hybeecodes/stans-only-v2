@@ -20,7 +20,7 @@ export class UserProfileDto implements Partial<User> {
   public dateOfBirth: Date;
   public emailNotificationStatus: boolean;
   public pushNotificationStatus: boolean;
-  public isSubscribedToUser: boolean;
+  public isSubscribedToUser?: boolean;
   public isSocialAuthUser: boolean;
 
   constructor(user: User) {

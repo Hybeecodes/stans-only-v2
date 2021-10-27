@@ -26,6 +26,7 @@ import { BookmarksService } from '../bookmarks/bookmarks.service';
 import { PaymentService } from '../../payment/payment.service';
 import { TipDto } from './dtos/tip.dto';
 import { UpdateUserProfileDto } from './dtos/update-user-profile.dto';
+import { SkipAuth } from '../../utils/meta/skip-auth';
 
 @Controller('users')
 export class UsersController {
@@ -45,6 +46,13 @@ export class UsersController {
     @LoggedInUser('id') userId: number,
   ) {
     const response = await this.usersService.getUserProfile(username, userId);
+    return new SuccessResponseDto('Successful', response);
+  }
+
+  @SkipAuth()
+  @Get('public/profile/:username')
+  async getUserProfileForGuest(@Param('username') username: string) {
+    const response = await this.usersService.getUserProfileForGuest(username);
     return new SuccessResponseDto('Successful', response);
   }
 

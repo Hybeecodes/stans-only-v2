@@ -59,6 +59,16 @@ export class UsersService {
     return { ...profile, isSubscribedToUser: Boolean(subscription) };
   }
 
+  async getUserProfileForGuest(username: string): Promise<UserProfileDto> {
+    const user = await this.userRepository.findUserByUserName(username);
+    if (!user) {
+      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+    }
+
+    const profile = new UserProfileDto(user);
+    return { ...profile };
+  }
+
   async getUserStansFollowingCount(
     userName: string,
   ): Promise<StansFollowingDto> {
