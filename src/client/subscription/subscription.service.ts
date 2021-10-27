@@ -263,6 +263,13 @@ export class SubscriptionService {
     }
   }
 
+  async hasValidSubscription(subscriberId: number, subscribeeId: number) {
+    const { 0: subscription } = await this.connection.query(
+      `SELECT * FROM subscriptions WHERE subscriber_id = ${subscriberId} AND subscribee_id = ${subscribeeId} AND is_deleted = false AND DATE(expiry_date) >= DATE(NOW()) LIMIT 1`,
+    );
+    return Boolean(subscription);
+  }
+
   async getUserSubscriptions(
     userName: string,
     queryData: BaseQueryDto,

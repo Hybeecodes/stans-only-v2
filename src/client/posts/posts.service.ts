@@ -117,6 +117,19 @@ export class PostsService {
     if (!post) {
       throw new HttpException('Post Not Found', HttpStatus.NOT_FOUND);
     }
+    if (post.author.id !== userId) {
+      if (
+        !(await this.subscriptionService.hasValidSubscription(
+          userId,
+          post.author.id,
+        ))
+      ) {
+        throw new HttpException(
+          'Sorry, you are not currently subscribed',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
     const isLiked = await this.likeRepository
       .createQueryBuilder()
       .where(`post_id = ${post.id}`)
@@ -127,12 +140,26 @@ export class PostsService {
   }
 
   async findPostsByUsername(
+    currentUserId: number,
     username: string,
     queryData: GetPostsQueryDto,
   ): Promise<{ count: number; posts: PostDto[] }> {
     const user = await this.usersService.getUserByUsername(username);
     if (!user) {
       throw new HttpException('Invalid Username', HttpStatus.BAD_REQUEST);
+    }
+    if (user.id !== currentUserId) {
+      if (
+        !(await this.subscriptionService.hasValidSubscription(
+          currentUserId,
+          user.id,
+        ))
+      ) {
+        throw new HttpException(
+          'Sorry, you are not currently subscribed',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
     }
     try {
       const postIds = await this.getPostsIdsByCriteria(queryData, user.id);
