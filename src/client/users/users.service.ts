@@ -278,6 +278,34 @@ export class UsersService {
     }
   }
 
+  async decrementUserUploadsCount(userId: number): Promise<void> {
+    try {
+      await this.userRepository.query(
+        `UPDATE users SET uploads_count = uploads_count-1 WHERE id = ${userId}`,
+      );
+    } catch (e) {
+      this.logger.error(
+        `decrementUserUploadsCount operation Failed: ${JSON.stringify(
+          e.message,
+        )}`,
+      );
+    }
+  }
+
+  async incrementUserUploadsCount(userId: number): Promise<void> {
+    try {
+      await this.userRepository.query(
+        `UPDATE users SET uploads_count = uploads_count+1 WHERE id = ${userId}`,
+      );
+    } catch (e) {
+      this.logger.error(
+        `incrementUserUploadsCount operation Failed: ${JSON.stringify(
+          e.message,
+        )}`,
+      );
+    }
+  }
+
   async incrementBlockedUsers(userId: number): Promise<void> {
     try {
       await this.userRepository.query(

@@ -23,6 +23,9 @@ export class WalletLedger extends BaseEntity {
   })
   amount: number;
 
+  @Column('varchar', { length: 255, nullable: true })
+  transactionReference: string;
+
   @Column('enum', { enum: LedgerStatus, default: LedgerStatus.ON_HOLD })
   ledgerStatus: LedgerStatus;
 }

@@ -8,6 +8,12 @@ export enum PaymentType {
   DEBIT = 'DEBIT',
 }
 
+export enum Status {
+  PENDING = 'PENDING',
+  SUCCESSFUL = 'SUCCESSFUL',
+  FAILED = 'FAILED',
+}
+
 @Entity('wallet_history')
 export class WalletHistory extends BaseEntity {
   @Column({ name: 'user_id' })
@@ -39,6 +45,9 @@ export class WalletHistory extends BaseEntity {
 
   @Column('enum', { enum: PaymentType, nullable: true })
   paymentType: PaymentType;
+
+  @Column('enum', { enum: Status, nullable: false, default: Status.PENDING })
+  status: Status;
 
   @Column('decimal', {
     precision: 12,

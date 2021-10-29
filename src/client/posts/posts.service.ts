@@ -74,6 +74,7 @@ export class PostsService {
         });
         await this.postMediaRepository.save(postMedia);
       }
+      this.eventEmitter.emit(Events.ON_NEW_POST, userId);
       return Promise.resolve(true);
     } catch (e) {
       this.logger.error(`Post Creation Failed: ${JSON.stringify(e.message)}`);
@@ -656,6 +657,7 @@ export class PostsService {
     try {
       post.isDeleted = true;
       await this.postRepository.save(post);
+      this.eventEmitter.emit(Events.ON_DELETE_POST, post.author.id);
     } catch (e) {
       this.logger.error(`Delete Post Failed: ${e.message}`);
       throw new HttpException(
@@ -678,6 +680,19 @@ export class PostsService {
         `User does not have access to ${type}`,
         HttpStatus.FORBIDDEN,
       );
+    }
+  }
+
+  async updateAllUsersUploadsCount() {
+    const posts = await this.postRepository.find({
+      where: { isDeleted: false },
+      relations: ['author'],
+    });
+
+    for (const post of posts) {
+      const authorId = post.author.id;
+      await this.usersService.incrementUserUploadsCount(authorId);
+      this.logger.debug('Updated');
     }
   }
 }

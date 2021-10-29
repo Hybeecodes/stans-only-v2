@@ -24,6 +24,7 @@ import { WalletHistoryDto } from './dtos/wallet-history.dto';
 import { ProcessWalletPaymentDto } from '../client/users/dtos/process-wallet-payment.dto';
 import { calculateFeeFromAmount } from '../utils/helpers';
 import { PaymentType } from '../entities/wallet-history.entity';
+import { LedgerStatus } from '../entities/wallet-ledger.entity';
 
 @Injectable()
 export class PaymentService {
@@ -150,22 +151,17 @@ export class PaymentService {
   }
 
   async initiateWithdrawal(payload: WithdrawalDto, userId: number) {
+    const { amount } = payload;
     const user = await this.usersService.findUserById(userId);
-    const bank = await this.bankService.getBankById(user, payload.accountId);
-    if (user.isWalletLocked) {
-      this.logger.log(
-        'User tried to initiate another withdrawal when one is already in progress: [Fraud Alert]',
-      );
+    if (user.availableBalance < amount) {
       throw new HttpException(
-        'Please hold on, you have a pending withdrawal',
-        HttpStatus.FORBIDDEN,
+        'Sorry, insufficient wallet balance',
+        HttpStatus.BAD_REQUEST,
       );
     }
-    // lock wallet
-    await this.usersService.lockUserWallet(userId);
+    const bank = await this.bankService.getBankById(user, payload.accountId);
     const reference = `WITH_${Date.now()}`;
     // log withdrawal transaction
-    const { amount } = payload;
     const transaction = this.transactionRepository.create({
       user,
       paymentStatus: PaymentStatus.NEW,
@@ -177,8 +173,17 @@ export class PaymentService {
       currency: 'NGN',
       paymentDate: new Date().toISOString(),
     });
-    await this.transactionRepository.save(transaction);
+    const queryRunner = await this.connection.createQueryRunner();
+    await queryRunner.connect();
     try {
+      await queryRunner.startTransaction();
+      await this.transactionRepository.save(transaction);
+      await queryRunner.query(
+        `UPDATE users SET available_balance = available_balance - ${amount}, balance_on_hold = balance_on_hold + ${amount} WHERE id = ${userId} AND is_deleted = false`,
+      );
+      await queryRunner.query(
+        `INSERT INTO wallet_ledger (user_id, amount, transaction_reference) VALUES(${userId}, ${amount}, '${reference}')`,
+      );
       const transferPayload: BankTransferDto = {
         amount,
         account_bank: bank.bankCode,
@@ -196,12 +201,16 @@ export class PaymentService {
         PaymentProviders.FLUTTERWAVE,
       );
       await paymentProvider.initiateBankTransfer(transferPayload);
+      queryRunner.commitTransaction();
     } catch (e) {
+      await queryRunner.rollbackTransaction();
       this.logger.error(`Payout Initiation Failed: ${JSON.stringify(e)}`);
       throw new HttpException(
         'Unable to Initiate Payout',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -216,6 +225,7 @@ export class PaymentService {
       const transaction = await this.transactionRepository.findOne({
         where: {
           reference,
+          amount,
           isDeleted: false,
           transactionType: TransactionTypes.WITHDRAWAL,
           paymentStatus: PaymentStatus.NEW,
@@ -224,26 +234,33 @@ export class PaymentService {
       });
       if (!transaction) {
         this.logger.error(
-          `Transaction With reference ${reference} does not exist`,
+          `Invalid Operation: Transaction With reference ${reference} does not exist`,
         );
         return false;
       }
+      const userId = transaction.user.id;
       transaction.paymentStatus = status;
       transaction.paymentProviderResponseMessage = complete_message;
       transaction.meta = JSON.stringify(payload.data);
       await this.transactionRepository.save(transaction);
       // update wallet if it was successful
       if (transaction.paymentStatus === PaymentStatus.COMPLETED) {
-        await this.usersService.decrementAvailableBalance(
-          transaction.user.id,
-          amount,
-        );
         queryRunner.query(
           `INSERT INTO wallet_history (user_id, amount, type) 
                 VALUES (${transaction.user.id}, ${amount}, '${TransactionTypes.WITHDRAWAL}')`,
         );
+        await queryRunner.query(
+          `UPDATE wallet_ledger SET ledger_status = '${LedgerStatus.RELEASED}' WHERE user_id = ${transaction.user.id} AND transaction_reference = '${reference}'`,
+        );
+      } else if (transaction.paymentStatus === PaymentStatus.FAILED) {
+        await queryRunner.query(
+          `UPDATE users SET available_balance = available_balance + ${amount}, balance_on_hold = balance_on_hold - ${amount} WHERE id = ${userId} AND is_deleted = false`,
+        );
+        await queryRunner.query(
+          `UPDATE wallet_ledger SET ledger_status = '${LedgerStatus.RELEASED}' WHERE user_id = ${transaction.user.id} AND transaction_reference = '${reference}'`,
+        );
       }
-      await this.usersService.releaseUserWallet(transaction.user.id);
+
       queryRunner.commitTransaction();
     } catch (e) {
       await queryRunner.rollbackTransaction();

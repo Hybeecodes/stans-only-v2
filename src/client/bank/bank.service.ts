@@ -24,7 +24,7 @@ export class BankService {
     const { bankCode, bankName, accountName, accountNumber } = input;
     // check if bank details exists
     const exists = await this.bankAccountRepository.findOne({
-      where: { bankCode, bankName, accountNumber, isDeleted: false },
+      where: { bankCode, bankName, accountNumber, isDeleted: false, user },
     });
     if (exists) {
       throw new HttpException(
