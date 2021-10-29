@@ -68,7 +68,7 @@ export class PaymentService {
     } catch (e) {
       this.logger.error(`Initiate Top up Transaction Failed`);
       throw new HttpException(
-        'Unable to Initiate Top up Transaction',
+        'Withdrawal failed, please try again later',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
