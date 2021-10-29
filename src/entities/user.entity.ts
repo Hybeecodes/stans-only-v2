@@ -86,6 +86,9 @@ export class User {
   subscribersCount: number;
 
   @Column('int', { nullable: false, default: 0 })
+  uploadsCount: number;
+
+  @Column('int', { nullable: false, default: 0 })
   blockedCount: number;
 
   @Column('enum', {
