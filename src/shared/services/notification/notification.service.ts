@@ -19,7 +19,7 @@ export class NotificationService {
   ) {
     this.logger = new Logger(NotificationService.name);
     this.appBaseUrl = this.configService.get('APP_BASE_URL');
-    this.adminAppBaseUrl = this.configService.get('APP_BASE_URL');
+    this.adminAppBaseUrl = this.configService.get('ADMIN_APP_BASE_URL');
   }
 
   async sendNewUserEmail(user: User): Promise<void> {
