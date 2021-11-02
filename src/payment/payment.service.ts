@@ -153,6 +153,16 @@ export class PaymentService {
   async initiateWithdrawal(payload: WithdrawalDto, userId: number) {
     const { amount } = payload;
     const user = await this.usersService.findUserById(userId);
+    if (user.isWalletLocked) {
+      this.logger.log(
+        'User tried to initiate another withdrawal when one is already in progress: [Fraud Alert]',
+      );
+      throw new HttpException(
+        'Please hold on, you have a pending withdrawal',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
     if (user.availableBalance < amount) {
       throw new HttpException(
         'Sorry, insufficient wallet balance',
@@ -177,13 +187,25 @@ export class PaymentService {
     await queryRunner.connect();
     try {
       await queryRunner.startTransaction();
-      await this.transactionRepository.save(transaction);
+      await queryRunner.manager.save(transaction);
       await queryRunner.query(
-        `UPDATE users SET available_balance = available_balance - ${amount}, balance_on_hold = balance_on_hold + ${amount} WHERE id = ${userId} AND is_deleted = false`,
+        `UPDATE users SET available_balance = available_balance - ${amount}, balance_on_hold = balance_on_hold + ${amount}, is_wallet_locked = true WHERE id = ${userId} AND is_deleted = false`,
       );
       await queryRunner.query(
         `INSERT INTO wallet_ledger (user_id, amount, transaction_reference) VALUES(${userId}, ${amount}, '${reference}')`,
       );
+      await queryRunner.commitTransaction();
+    } catch (e) {
+      await queryRunner.rollbackTransaction();
+      this.logger.error(`Payout Initiation Failed: ${JSON.stringify(e)}`);
+      throw new HttpException(
+        'Unable to Initiate Payout',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    } finally {
+      await queryRunner.release();
+    }
+    try {
       const transferPayload: BankTransferDto = {
         amount,
         account_bank: bank.bankCode,
@@ -201,16 +223,13 @@ export class PaymentService {
         PaymentProviders.FLUTTERWAVE,
       );
       await paymentProvider.initiateBankTransfer(transferPayload);
-      queryRunner.commitTransaction();
     } catch (e) {
-      await queryRunner.rollbackTransaction();
-      this.logger.error(`Payout Initiation Failed: ${JSON.stringify(e)}`);
-      throw new HttpException(
-        'Unable to Initiate Payout',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+      await queryRunner.query(
+        `UPDATE users SET available_balance = available_balance + ${amount}, balance_on_hold = balance_on_hold - ${amount}, is_wallet_locked = false WHERE id = ${userId} AND is_deleted = false`,
       );
-    } finally {
-      await queryRunner.release();
+      await queryRunner.query(
+        `UPDATE wallet_ledger SET ledger_status = '${LedgerStatus.RELEASED}' WHERE user_id = ${userId} AND transaction_reference = '${reference}'`,
+      );
     }
   }
 
@@ -242,7 +261,7 @@ export class PaymentService {
       transaction.paymentStatus = status;
       transaction.paymentProviderResponseMessage = complete_message;
       transaction.meta = JSON.stringify(payload.data);
-      await this.transactionRepository.save(transaction);
+      await queryRunner.manager.save(transaction);
       // update wallet if it was successful
       if (transaction.paymentStatus === PaymentStatus.COMPLETED) {
         queryRunner.query(
@@ -254,7 +273,7 @@ export class PaymentService {
         );
       } else if (transaction.paymentStatus === PaymentStatus.FAILED) {
         await queryRunner.query(
-          `UPDATE users SET available_balance = available_balance + ${amount}, balance_on_hold = balance_on_hold - ${amount} WHERE id = ${userId} AND is_deleted = false`,
+          `UPDATE users SET available_balance = available_balance + ${amount}, balance_on_hold = balance_on_hold - ${amount}, is_wallet_locked = false WHERE id = ${userId} AND is_deleted = false`,
         );
         await queryRunner.query(
           `UPDATE wallet_ledger SET ledger_status = '${LedgerStatus.RELEASED}' WHERE user_id = ${transaction.user.id} AND transaction_reference = '${reference}'`,
