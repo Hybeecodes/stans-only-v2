@@ -15,6 +15,8 @@ import { FileModule } from './file/file.module';
 import { PaymentModule } from './payment/payment.module';
 import { CronModule } from './cron/cron.module';
 import { MailjetService } from './shared/services/notifications/email/mailjet/mailjet.service';
+import { AdminModule } from './admin/admin.module';
+import { AdminEventHandlerModule } from './events/admin/handlers/admin-event-handler.module';
 
 @Module({
   imports: [
@@ -48,6 +50,8 @@ import { MailjetService } from './shared/services/notifications/email/mailjet/ma
     FileModule,
     PaymentModule,
     CronModule,
+    AdminModule,
+    AdminEventHandlerModule,
   ],
   controllers: [AppController],
   providers: [

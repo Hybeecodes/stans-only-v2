@@ -1,5 +1,6 @@
 export enum Events {
   ON_REGISTRATION = 'onRegistration',
+  ON_NEW_ADMIN_USER = 'adminUser.new',
   ON_FORGOT_PASSWORD = 'onForgotPassword',
   CREATE_POST_MEDIA = 'createPostMedia',
   ON_NEW_COMMENT = 'comment.new',

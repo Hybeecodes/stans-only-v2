@@ -1,5 +1,5 @@
 import { BaseEntity } from './base.entity';
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
 import { User } from './user.entity';
 
 export enum LedgerStatus {
@@ -26,6 +26,7 @@ export class WalletLedger extends BaseEntity {
   @Column('varchar', { length: 255, nullable: true })
   transactionReference: string;
 
+  @Index('idx_ledger_status')
   @Column('enum', { enum: LedgerStatus, default: LedgerStatus.ON_HOLD })
   ledgerStatus: LedgerStatus;
 }
