@@ -153,6 +153,16 @@ export class PaymentService {
   async initiateWithdrawal(payload: WithdrawalDto, userId: number) {
     const { amount } = payload;
     const user = await this.usersService.findUserById(userId);
+    if (user.isWalletLocked) {
+      this.logger.log(
+        'User tried to initiate another withdrawal when one is already in progress: [Fraud Alert]',
+      );
+      throw new HttpException(
+        'Please hold on, you have a pending withdrawal',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
     if (user.availableBalance < amount) {
       throw new HttpException(
         'Sorry, insufficient wallet balance',
@@ -179,7 +189,7 @@ export class PaymentService {
       await queryRunner.startTransaction();
       await queryRunner.manager.save(transaction);
       await queryRunner.query(
-        `UPDATE users SET available_balance = available_balance - ${amount}, balance_on_hold = balance_on_hold + ${amount} WHERE id = ${userId} AND is_deleted = false`,
+        `UPDATE users SET available_balance = available_balance - ${amount}, balance_on_hold = balance_on_hold + ${amount}, is_wallet_locked = true WHERE id = ${userId} AND is_deleted = false`,
       );
       await queryRunner.query(
         `INSERT INTO wallet_ledger (user_id, amount, transaction_reference) VALUES(${userId}, ${amount}, '${reference}')`,
@@ -215,7 +225,7 @@ export class PaymentService {
       await paymentProvider.initiateBankTransfer(transferPayload);
     } catch (e) {
       await queryRunner.query(
-        `UPDATE users SET available_balance = available_balance + ${amount}, balance_on_hold = balance_on_hold - ${amount} WHERE id = ${userId} AND is_deleted = false`,
+        `UPDATE users SET available_balance = available_balance + ${amount}, balance_on_hold = balance_on_hold - ${amount}, is_wallet_locked = false WHERE id = ${userId} AND is_deleted = false`,
       );
       await queryRunner.query(
         `UPDATE wallet_ledger SET ledger_status = '${LedgerStatus.RELEASED}' WHERE user_id = ${userId} AND transaction_reference = '${reference}'`,
@@ -263,7 +273,7 @@ export class PaymentService {
         );
       } else if (transaction.paymentStatus === PaymentStatus.FAILED) {
         await queryRunner.query(
-          `UPDATE users SET available_balance = available_balance + ${amount}, balance_on_hold = balance_on_hold - ${amount} WHERE id = ${userId} AND is_deleted = false`,
+          `UPDATE users SET available_balance = available_balance + ${amount}, balance_on_hold = balance_on_hold - ${amount}, is_wallet_locked = false WHERE id = ${userId} AND is_deleted = false`,
         );
         await queryRunner.query(
           `UPDATE wallet_ledger SET ledger_status = '${LedgerStatus.RELEASED}' WHERE user_id = ${transaction.user.id} AND transaction_reference = '${reference}'`,
