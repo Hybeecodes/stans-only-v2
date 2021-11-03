@@ -264,12 +264,15 @@ export class PaymentService {
       await queryRunner.manager.save(transaction);
       // update wallet if it was successful
       if (transaction.paymentStatus === PaymentStatus.COMPLETED) {
-        queryRunner.query(
+        await queryRunner.query(
           `INSERT INTO wallet_history (user_id, amount, type) 
                 VALUES (${transaction.user.id}, ${amount}, '${TransactionTypes.WITHDRAWAL}')`,
         );
         await queryRunner.query(
           `UPDATE wallet_ledger SET ledger_status = '${LedgerStatus.RELEASED}' WHERE user_id = ${transaction.user.id} AND transaction_reference = '${reference}'`,
+        );
+        await queryRunner.query(
+          `UPDATE users SET balance_on_hold = balance_on_hold - ${amount}, is_wallet_locked = false WHERE id = ${userId} AND is_deleted = false`,
         );
       } else if (transaction.paymentStatus === PaymentStatus.FAILED) {
         await queryRunner.query(
