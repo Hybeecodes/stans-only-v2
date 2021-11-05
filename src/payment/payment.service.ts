@@ -192,7 +192,7 @@ export class PaymentService {
         `UPDATE users SET available_balance = available_balance - ${amount}, balance_on_hold = balance_on_hold + ${amount}, is_wallet_locked = true WHERE id = ${userId} AND is_deleted = false`,
       );
       await queryRunner.query(
-        `INSERT INTO wallet_ledger (user_id, amount, transaction_reference) VALUES(${userId}, ${amount}, '${reference}')`,
+        `INSERT INTO wallet_ledger (user_id, amount, transaction_reference, ledger_status) VALUES(${userId}, ${amount}, '${reference}', '${LedgerStatus.ON_HOLD_FOR_WITHDRAWAL}')`,
       );
       await queryRunner.commitTransaction();
     } catch (e) {
@@ -264,12 +264,15 @@ export class PaymentService {
       await queryRunner.manager.save(transaction);
       // update wallet if it was successful
       if (transaction.paymentStatus === PaymentStatus.COMPLETED) {
-        queryRunner.query(
+        await queryRunner.query(
           `INSERT INTO wallet_history (user_id, amount, type) 
                 VALUES (${transaction.user.id}, ${amount}, '${TransactionTypes.WITHDRAWAL}')`,
         );
         await queryRunner.query(
           `UPDATE wallet_ledger SET ledger_status = '${LedgerStatus.RELEASED}' WHERE user_id = ${transaction.user.id} AND transaction_reference = '${reference}'`,
+        );
+        await queryRunner.query(
+          `UPDATE users SET balance_on_hold = balance_on_hold - ${amount}, is_wallet_locked = false WHERE id = ${userId} AND is_deleted = false`,
         );
       } else if (transaction.paymentStatus === PaymentStatus.FAILED) {
         await queryRunner.query(

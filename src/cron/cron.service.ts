@@ -20,7 +20,7 @@ export class CronService implements OnModuleInit {
       this.logger.debug('makePendingWalletBalanceAvailable Cron Starting');
       const ledgerRecords: { id: number; amount: number; user_id: number }[] =
         await this.connection.query(`
-    SELECT id, amount, user_id FROM wallet_ledger WHERE ledger_status = '${LedgerStatus.ON_HOLD}' AND DATE(created_at) <= DATE(date_sub(NOW(), INTERVAL 7 DAY )) AND is_deleted = false
+    SELECT id, amount, user_id FROM wallet_ledger WHERE ledger_status = '${LedgerStatus.ON_HOLD_FOR_SUBSCRIPTION}' AND DATE(created_at) <= DATE(date_sub(NOW(), INTERVAL 7 DAY )) AND is_deleted = false
     `);
       // iterate through the ledgerRecords
       if (ledgerRecords.length > 0) {

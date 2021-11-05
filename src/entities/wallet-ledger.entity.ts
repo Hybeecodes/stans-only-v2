@@ -3,8 +3,9 @@ import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
 import { User } from './user.entity';
 
 export enum LedgerStatus {
-  ON_HOLD = 'ON_HOLD',
+  ON_HOLD_FOR_SUBSCRIPTION = 'ON_HOLD_FOR_SUBSCRIPTION',
   RELEASED = 'RELEASED',
+  ON_HOLD_FOR_WITHDRAWAL = 'ON_HOLD_FOR_WITHDRAWAL', // money is help for withdrawal operation
 }
 
 @Entity('wallet_ledger')
@@ -27,6 +28,9 @@ export class WalletLedger extends BaseEntity {
   transactionReference: string;
 
   @Index('idx_ledger_status')
-  @Column('enum', { enum: LedgerStatus, default: LedgerStatus.ON_HOLD })
+  @Column('enum', {
+    enum: LedgerStatus,
+    default: LedgerStatus.ON_HOLD_FOR_SUBSCRIPTION,
+  })
   ledgerStatus: LedgerStatus;
 }
