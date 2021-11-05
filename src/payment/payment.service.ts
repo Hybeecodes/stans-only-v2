@@ -192,7 +192,7 @@ export class PaymentService {
         `UPDATE users SET available_balance = available_balance - ${amount}, balance_on_hold = balance_on_hold + ${amount}, is_wallet_locked = true WHERE id = ${userId} AND is_deleted = false`,
       );
       await queryRunner.query(
-        `INSERT INTO wallet_ledger (user_id, amount, transaction_reference) VALUES(${userId}, ${amount}, '${reference}')`,
+        `INSERT INTO wallet_ledger (user_id, amount, transaction_reference, ledger_status) VALUES(${userId}, ${amount}, '${reference}', '${LedgerStatus.ON_HOLD_FOR_WITHDRAWAL}')`,
       );
       await queryRunner.commitTransaction();
     } catch (e) {
