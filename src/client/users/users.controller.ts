@@ -27,6 +27,7 @@ import { PaymentService } from '../../payment/payment.service';
 import { TipDto } from './dtos/tip.dto';
 import { UpdateUserProfileDto } from './dtos/update-user-profile.dto';
 import { SkipAuth } from '../../utils/meta/skip-auth';
+import { GetWalletHistoryQueryDto } from '../../payment/dtos/get-wallet-history-query.dto';
 
 @Controller('users')
 export class UsersController {
@@ -92,7 +93,7 @@ export class UsersController {
   @Get('wallet/history')
   async getWalletHistory(
     @LoggedInUser('id') userId: number,
-    @Query() query: BaseQueryDto,
+    @Query() query: GetWalletHistoryQueryDto,
   ) {
     const response = await this.paymentService.getWalletTransactionHistory(
       userId,

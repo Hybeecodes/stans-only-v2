@@ -112,6 +112,9 @@ export class User {
   })
   availableBalance: number;
 
+  @Column('datetime', { nullable: true })
+  lastLogin: Date;
+
   @Column('decimal', {
     precision: 12,
     scale: 2,
@@ -121,6 +124,12 @@ export class User {
 
   @Column('boolean', { nullable: false, default: false })
   isDeleted: boolean;
+
+  @Column('boolean', { nullable: false, default: false })
+  isSuspended: boolean;
+
+  @Column('boolean', { nullable: false, default: false })
+  shouldRestPassword: boolean;
 
   @Column('boolean', { nullable: false, default: false })
   isSocialAuthUser: boolean;

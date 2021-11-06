@@ -142,12 +142,21 @@ export class AuthService {
     if (user.status === StatusType.INACTIVE) {
       throw new HttpException('User Suspended', HttpStatus.BAD_REQUEST);
     }
+
+    if (user.shouldRestPassword) {
+      throw new HttpException(
+        'Please follow the link sent to your email to reset your password',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     try {
       const notificationCount =
         await this.notificationsService.getUserUnreadNotificationCount(user.id);
       const token = this.jwtService.sign({ email: user.email });
       const expiryDate = new Date();
       expiryDate.setHours(expiryDate.getHours() + 1);
+      user.lastLogin = new Date();
+      await this.userRepository.save(user);
       return {
         user: {
           ...user.toUserResponse(),
@@ -173,6 +182,7 @@ export class AuthService {
     }
     try {
       user.resetToken = nanoid(10);
+      user.shouldRestPassword = true;
       await this.userRepository.save(user);
       this.eventEmitter.emit(Events.ON_FORGOT_PASSWORD, user);
     } catch (e) {
@@ -203,6 +213,7 @@ export class AuthService {
     try {
       user.password = hashPassword(password);
       user.resetToken = null;
+      user.shouldRestPassword = false;
       await this.userRepository.save(user);
       return Promise.resolve(undefined);
     } catch (e) {
@@ -238,7 +249,10 @@ export class AuthService {
         user: user.toUserResponse(),
         token,
       };
-    } catch (e) {}
+    } catch (e) {
+      this.logger.error(`Social failed: ${JSON.stringify(e.message)}`);
+      throw new HttpException('Login failed', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   async updatePassword(userId: number, input: UpdatePasswordDto) {

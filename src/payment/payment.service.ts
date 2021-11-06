@@ -19,12 +19,12 @@ import { WithdrawalDto } from './dtos/withdrawal.dto';
 import { BankTransferDto } from './dtos/bank-transfer.dto';
 import { BankService } from '../client/bank/bank.service';
 import { ConfigService } from '@nestjs/config';
-import { BaseQueryDto } from '../shared/dtos/base-query.dto';
 import { WalletHistoryDto } from './dtos/wallet-history.dto';
 import { ProcessWalletPaymentDto } from '../client/users/dtos/process-wallet-payment.dto';
 import { calculateFeeFromAmount } from '../utils/helpers';
 import { PaymentType } from '../entities/wallet-history.entity';
 import { LedgerStatus } from '../entities/wallet-ledger.entity';
+import { GetWalletHistoryQueryDto } from './dtos/get-wallet-history-query.dto';
 
 @Injectable()
 export class PaymentService {
@@ -294,16 +294,21 @@ export class PaymentService {
 
   async getWalletTransactionHistory(
     userId: number,
-    query: BaseQueryDto,
+    query: GetWalletHistoryQueryDto,
   ): Promise<any> {
     await this.usersService.findUserById(userId);
-    const { offset, limit } = query;
+    const { offset, limit, transactionType } = query;
     try {
-      const [walletHistory, count] = await this.walletHistoryRepository
+      const builder = this.walletHistoryRepository
         .createQueryBuilder('history')
         .leftJoinAndSelect('history.initiator', 'initiator')
         .where(`history.user_id  = ${userId}`)
-        .andWhere('history.is_deleted = false')
+        .andWhere('history.is_deleted = false');
+
+      if (transactionType) {
+        builder.andWhere(`payment_type = '${transactionType}'`);
+      }
+      const [walletHistory, count] = await builder
         .limit(limit || 10)
         .offset(offset || 0)
         .orderBy('history.created_at', 'DESC')
