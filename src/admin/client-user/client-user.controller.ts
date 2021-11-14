@@ -4,6 +4,7 @@ import { SuccessResponseDto } from '../../shared/success-response.dto';
 import { GetAllUsersQueryDto } from './dtos/get-all-users-query.dto';
 import { PaymentService } from '../../payment/payment.service';
 import { GetWalletHistoryQueryDto } from '../../payment/dtos/get-wallet-history-query.dto';
+import { SkipAuth } from '../../utils/meta/skip-auth';
 
 @Controller('admin/client-users')
 export class ClientUserController {
@@ -12,6 +13,7 @@ export class ClientUserController {
     private readonly paymentService: PaymentService,
   ) {}
 
+  @SkipAuth()
   @Get()
   async getAllUsers(
     @Query() query: GetAllUsersQueryDto,

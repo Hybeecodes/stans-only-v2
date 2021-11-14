@@ -57,6 +57,7 @@ export class AuthService {
     }
     try {
       const adminUser = this.adminRepository.create(input);
+      await this.adminRepository.save(adminUser);
       this.eventEmitter.emit(AdminEvents.ON_NEW_ADMIN_USER, adminUser);
       return adminUser.toUserResponse();
     } catch (e) {
