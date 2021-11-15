@@ -137,6 +137,9 @@ export class User {
   @Column('boolean', { nullable: false, default: false })
   isWalletLocked: boolean;
 
+  @Column('text', { nullable: true })
+  webPushSubscription: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

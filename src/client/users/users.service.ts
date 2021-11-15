@@ -20,6 +20,7 @@ import { NotificationType } from '../../entities/notification.entity';
 import { TipDto } from './dtos/tip.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PaymentType } from '../../entities/wallet-history.entity';
+import { SaveWebPushSubscriptionDto } from './dtos/save-web-push-subscription.dto';
 
 @Injectable()
 export class UsersService {
@@ -472,6 +473,30 @@ export class UsersService {
         `decrementBlockedUsers operation Failed: ${JSON.stringify(e.message)}`,
       );
     }
+  }
+
+  async updateWebPushSubscription(
+    userId: number,
+    subscription: SaveWebPushSubscriptionDto,
+  ) {
+    const user = await this.userRepository.findUserById(userId);
+    try {
+      user.webPushSubscription = JSON.stringify(subscription);
+      await this.userRepository.save(user);
+    } catch (e) {
+      this.logger.error(
+        `updateWebPushSubscription Failed: ${JSON.stringify(e)}`,
+      );
+      throw new HttpException(
+        'Unable to update web push subscription',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async getWebPushNotification(userId: number): Promise<any> {
+    const user = await this.userRepository.findUserById(userId);
+    return JSON.parse(user.webPushSubscription);
   }
 
   async tipUser(

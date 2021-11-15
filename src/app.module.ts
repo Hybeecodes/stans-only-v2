@@ -17,6 +17,8 @@ import { CronModule } from './cron/cron.module';
 import { MailjetService } from './shared/services/notifications/email/mailjet/mailjet.service';
 import { AdminModule } from './admin/admin.module';
 import { AdminEventHandlerModule } from './events/admin/handlers/admin-event-handler.module';
+import { WebPushService } from './shared/services/notifications/web-push/web-push.service';
+import { UsersModule } from './client/users/users.module';
 
 @Module({
   imports: [
@@ -46,6 +48,7 @@ import { AdminEventHandlerModule } from './events/admin/handlers/admin-event-han
       }),
     }),
     NotificationModule,
+    UsersModule,
     ClientModule,
     FileModule,
     PaymentModule,
@@ -67,6 +70,8 @@ import { AdminEventHandlerModule } from './events/admin/handlers/admin-event-han
     },
 
     MailjetService,
+
+    WebPushService,
   ],
 })
 export class AppModule {}

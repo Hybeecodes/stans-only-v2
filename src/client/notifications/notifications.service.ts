@@ -12,6 +12,7 @@ import { NotificationDto } from './dtos/notification.dto';
 import { NotificationQueryDto } from './dtos/notification-query.dto';
 import { User } from '../../entities/user.entity';
 import { toBoolean } from '../../utils/helpers';
+import { SaveWebPushSubscriptionDto } from '../users/dtos/save-web-push-subscription.dto';
 
 @Injectable()
 export class NotificationsService {
@@ -37,6 +38,13 @@ export class NotificationsService {
         break;
     }
     return url;
+  }
+
+  async updateWebPushSubscription(
+    userId: number,
+    subscription: SaveWebPushSubscriptionDto,
+  ) {
+    return this.usersService.updateWebPushSubscription(userId, subscription);
   }
 
   async addUserNotification(

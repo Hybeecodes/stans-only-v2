@@ -3,12 +3,16 @@ import { NotificationsService } from '../../../../client/notifications/notificat
 import { OnEvent } from '@nestjs/event-emitter';
 import { Events } from '../../events.enum';
 import { NewNotificationDto } from '../../../../client/notifications/dtos/new-notification.dto';
+import { WebPushService } from '../../../../shared/services/notifications/web-push/web-push.service';
 
 @Injectable()
 export class NotificationEventHandlerService {
   private readonly logger: Logger;
 
-  constructor(private readonly notificationsService: NotificationsService) {
+  constructor(
+    private readonly notificationsService: NotificationsService,
+    private readonly webPush: WebPushService,
+  ) {
     this.logger = new Logger(NotificationEventHandlerService.name);
   }
 
@@ -18,6 +22,10 @@ export class NotificationEventHandlerService {
   ): Promise<void> {
     if (notificationPayload.recipientId !== notificationPayload.senderId) {
       await this.notificationsService.addUserNotification(notificationPayload);
+      await this.webPush.sendWebPushNotification(
+        notificationPayload.recipientId,
+        notificationPayload,
+      );
     }
   }
 }

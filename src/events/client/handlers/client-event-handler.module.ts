@@ -8,6 +8,7 @@ import { UsersModule } from '../../../client/users/users.module';
 import { NotificationEventHandlerService } from './notification-event-handler/notification-event-handler.service';
 import { NotificationsModule } from '../../../client/notifications/notifications.module';
 import { BlockageEventHandlerService } from './blockage-event-handler/blockage-event-handler.service';
+import { WebPushService } from '../../../shared/services/notifications/web-push/web-push.service';
 
 @Module({
   imports: [NotificationModule, PostsModule, UsersModule, NotificationsModule],
@@ -17,6 +18,7 @@ import { BlockageEventHandlerService } from './blockage-event-handler/blockage-e
     SubscriptionEventHandlerService,
     NotificationEventHandlerService,
     BlockageEventHandlerService,
+    WebPushService,
   ],
   exports: [AuthEventHandlerService],
 })

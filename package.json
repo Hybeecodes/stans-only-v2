@@ -56,13 +56,15 @@
     "nanoid": "^3.1.23",
     "node-mailjet": "^3.3.4",
     "pluralize": "^8.0.0",
+    "redis": "^3.1.2",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "7.3.0",
     "ses-email-client": "^1.1.0",
     "ses-template-mailer": "^2.1.2",
     "swagger-ui-express": "^4.1.6",
-    "typeorm": "^0.2.32"
+    "typeorm": "^0.2.32",
+    "web-push": "^3.4.5"
   },
   "devDependencies": {
     "@nestjs/cli": "^7.6.0",

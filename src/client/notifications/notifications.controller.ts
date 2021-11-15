@@ -1,8 +1,9 @@
-import { Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import { LoggedInUser } from '../../utils/decorators/logged-in-user.decorator';
 import { NotificationQueryDto } from './dtos/notification-query.dto';
 import { SuccessResponseDto } from '../../shared/success-response.dto';
+import { SaveWebPushSubscriptionDto } from '../users/dtos/save-web-push-subscription.dto';
 
 @Controller('notifications')
 export class NotificationsController {
@@ -18,6 +19,21 @@ export class NotificationsController {
       queryInput,
     );
     return new SuccessResponseDto('Successful', response);
+  }
+
+  @Put('save-subscription')
+  async saveWebPushSubscription(
+    @LoggedInUser('id') userId: number,
+    @Body() subscription: SaveWebPushSubscriptionDto,
+  ) {
+    const response = await this.notificationsService.updateWebPushSubscription(
+      userId,
+      subscription,
+    );
+    return new SuccessResponseDto(
+      'Subscription updated successfully',
+      response,
+    );
   }
 
   @Get('count')
