@@ -29,6 +29,7 @@ export class WebPushService {
         userId,
       );
       await webpush.sendNotification(subscription, notificationObj);
+      this.logger.log('Web Push Notification Sent');
     } catch (e) {
       this.logger.error(`sendWebPushNotification: ${JSON.stringify(e)}`);
     }
