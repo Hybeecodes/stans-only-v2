@@ -25,9 +25,12 @@ export class WebPushService {
 
   async sendWebPushNotification(userId: number, notificationObj) {
     try {
-      const subscription = await this.usersService.getWebPushNotification(
-        userId,
-      );
+      const { subscription, isPushNotificationEnabled } =
+        await this.usersService.getWebPushNotification(userId);
+      if (!isPushNotificationEnabled) {
+        this.logger.log('Push Notification is Disabled for user');
+        return;
+      }
       console.log(subscription);
       await webpush.sendNotification(
         subscription,

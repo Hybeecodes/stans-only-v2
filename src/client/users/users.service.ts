@@ -494,9 +494,16 @@ export class UsersService {
     }
   }
 
-  async getWebPushNotification(userId: number): Promise<any> {
+  async getWebPushNotification(
+    userId: number,
+  ): Promise<{ subscription: any; isPushNotificationEnabled: boolean }> {
     const user = await this.userRepository.findUserById(userId);
-    return JSON.parse(user.webPushSubscription);
+    const isPushNotificationEnabled = user.pushNotificationStatus;
+    const subscription = JSON.parse(user.webPushSubscription);
+    return {
+      subscription,
+      isPushNotificationEnabled,
+    };
   }
 
   async tipUser(
