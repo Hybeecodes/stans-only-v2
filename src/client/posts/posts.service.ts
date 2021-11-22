@@ -442,6 +442,15 @@ export class PostsService {
     }
     const isComment = !!post.parent;
     const author = await this.usersService.findUserById(authorId);
+    const entity = isComment ? 'Comment' : 'Post';
+    // check if user has liked before
+    const hasLiked = await this.likeRepository.find({ where: { author } });
+    if (hasLiked) {
+      throw new HttpException(
+        `${entity} has been liked already`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     try {
       const newLike = this.likeRepository.create({
         post,
@@ -451,7 +460,6 @@ export class PostsService {
       const notification = new NewNotificationDto();
       notification.senderId = authorId;
       notification.recipientId = post.author.id;
-      const entity = isComment ? 'Comment' : 'Post';
       notification.message = `${author.userName} liked your ${entity}`;
       notification.type = NotificationType.LIKE;
       const commentNotificationMeta = {
