@@ -444,7 +444,9 @@ export class PostsService {
     const author = await this.usersService.findUserById(authorId);
     const entity = isComment ? 'Comment' : 'Post';
     // check if user has liked before
-    const hasLiked = await this.likeRepository.find({ where: { author } });
+    const hasLiked = await this.likeRepository.findOne({
+      where: { author, post },
+    });
     if (hasLiked) {
       throw new HttpException(
         `${entity} has been liked already`,
