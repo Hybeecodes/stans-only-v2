@@ -571,6 +571,7 @@ export class UsersService {
 
       const notification = new NewNotificationDto();
       notification.senderId = giverId;
+      notification.senderUserName = giver.userName;
       notification.recipientId = recipient.id;
       notification.recipientUserName = recipient.userName;
       notification.message = `@${giver.userName} tipped to you #${amount}`;

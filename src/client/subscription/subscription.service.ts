@@ -138,6 +138,7 @@ export class SubscriptionService {
 
         const notification = new NewNotificationDto();
         notification.senderId = subscriberId;
+        notification.senderUserName = subscriber.userName;
         notification.recipientId = subscribee.id;
         notification.recipientUserName = subscribee.userName;
         notification.message = `${subscriber.userName} Subscribed to you`;

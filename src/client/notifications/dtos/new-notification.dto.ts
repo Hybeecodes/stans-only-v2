@@ -7,6 +7,8 @@ export class NewNotificationDto {
 
   senderId: number;
 
+  senderUserName: string;
+
   message: string;
 
   type: NotificationType;

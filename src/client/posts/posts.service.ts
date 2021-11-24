@@ -361,6 +361,7 @@ export class PostsService {
       this.eventEmitter.emit(Events.ON_NEW_COMMENT, postId);
       const notification = new NewNotificationDto();
       notification.senderId = authorId;
+      notification.senderUserName = author.userName;
       notification.recipientId = post.author.id;
       notification.recipientUserName = post.author.userName;
       notification.message = `${author.userName} commented on your post`;
@@ -462,6 +463,7 @@ export class PostsService {
       await this.likeRepository.save(newLike);
       const notification = new NewNotificationDto();
       notification.senderId = authorId;
+      notification.senderUserName = author.userName;
       notification.recipientId = post.author.id;
       notification.recipientUserName = post.author.userName;
       notification.message = `${author.userName} liked your ${entity}`;
