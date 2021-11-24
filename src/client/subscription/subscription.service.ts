@@ -139,6 +139,7 @@ export class SubscriptionService {
         const notification = new NewNotificationDto();
         notification.senderId = subscriberId;
         notification.recipientId = subscribee.id;
+        notification.recipientUserName = subscribee.userName;
         notification.message = `${subscriber.userName} Subscribed to you`;
         notification.type = NotificationType.SUBSCRIPTION;
         // TODO:: Send Email to Content Creator about the operation

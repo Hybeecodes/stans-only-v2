@@ -362,6 +362,7 @@ export class PostsService {
       const notification = new NewNotificationDto();
       notification.senderId = authorId;
       notification.recipientId = post.author.id;
+      notification.recipientUserName = post.author.userName;
       notification.message = `${author.userName} commented on your post`;
       notification.type = NotificationType.COMMENT;
       notification.meta = { postId, commentId: newComment.id };
@@ -462,6 +463,7 @@ export class PostsService {
       const notification = new NewNotificationDto();
       notification.senderId = authorId;
       notification.recipientId = post.author.id;
+      notification.recipientUserName = post.author.userName;
       notification.message = `${author.userName} liked your ${entity}`;
       notification.type = NotificationType.LIKE;
       const commentNotificationMeta = {
