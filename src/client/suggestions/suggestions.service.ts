@@ -4,6 +4,7 @@ import { UserRepository } from '../../repositories/user.repository';
 import { UserDto } from '../../entities/user.entity';
 import { StatusType } from '../../shared/constants/status-type.enum';
 import { SuggestUserQueryDto } from './dtos/suggest-user-query.dto';
+import { SubscriptionService } from '../subscription/subscription.service';
 
 @Injectable()
 export class SuggestionsService {
@@ -11,6 +12,7 @@ export class SuggestionsService {
   constructor(
     @InjectRepository(UserRepository)
     private readonly userRepository: UserRepository,
+    private readonly subscriptionService: SubscriptionService,
   ) {
     this.logger = new Logger(SuggestionsService.name);
   }
@@ -21,11 +23,15 @@ export class SuggestionsService {
   ): Promise<{ count: number; users: UserDto[] }> {
     try {
       const { offset, limit, subscriptionType } = queryInput;
+      const subscribedUsers =
+        await this.subscriptionService.getAllUserSubscriptions(userId);
+      subscribedUsers.push(userId);
       const builder = this.userRepository
         .createQueryBuilder('user')
-        .where(`id != ${userId}`)
+        .where(`id NOT IN (${subscribedUsers.join(',')})`)
         .andWhere('is_deleted = false')
-        .andWhere(`status = '${StatusType.ACTIVE}'`);
+        .andWhere(`status = '${StatusType.ACTIVE}'`)
+        .andWhere('is_content_creator = true');
       if (subscriptionType) {
         builder.andWhere(`subscription_type = '${subscriptionType}'`);
       }

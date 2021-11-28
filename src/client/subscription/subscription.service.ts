@@ -224,7 +224,7 @@ export class SubscriptionService {
     }
   }
 
-  async getAllUserSubscriptions(userId: number) {
+  async getAllUserSubscriptions(userId: number): Promise<number[]> {
     try {
       const subscriptions = await this.subscriptionRepository.query(`
       SELECT subscribee_id FROM subscriptions WHERE subscriber_id = ${userId} AND is_deleted = false AND DATE(expiry_date) >= DATE(NOW())

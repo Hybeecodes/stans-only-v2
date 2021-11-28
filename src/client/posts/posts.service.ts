@@ -176,7 +176,7 @@ export class PostsService {
         .getManyAndCount();
       return {
         count,
-        posts: await this.toPostResponse(userPosts, user.id),
+        posts: await this.toPostResponse(userPosts, currentUserId),
       };
     } catch (e) {
       throw new HttpException(
@@ -209,7 +209,7 @@ export class PostsService {
       const bookmarkedPostIds = bookmarkedPosts.map((post) => {
         return post.post_id;
       });
-
+      console.log(likedPostIds);
       return posts.map((p) => {
         const isLiked = likedPostIds.includes(p.id);
         const isBookmarked = bookmarkedPostIds.includes(p.id);
