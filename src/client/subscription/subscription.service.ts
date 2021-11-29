@@ -242,7 +242,7 @@ export class SubscriptionService {
   async getSubscriptionsCount(userId: number) {
     try {
       const [{ count }] = await this.subscriptionRepository.query(`
-      SELECT COUNT(*) as count FROM subscriptions WHERE subscriber_id = ${userId} AND is_deleted = false
+      SELECT COUNT(*) as count FROM subscriptions WHERE subscriber_id = ${userId} AND is_deleted = false AND DATE(expiry_date) >= DATE(NOW())
       `);
       return Number(count);
     } catch (e) {
@@ -255,7 +255,7 @@ export class SubscriptionService {
   async getSubscribersCount(userId: number) {
     try {
       const [{ count }] = await this.subscriptionRepository.query(`
-      SELECT COUNT(*) as count FROM subscriptions WHERE subscribee_id = ${userId} AND is_deleted = false
+      SELECT COUNT(*) as count FROM subscriptions WHERE subscribee_id = ${userId} AND is_deleted = false AND DATE(expiry_date) >= DATE(NOW())
       `);
       return Number(count);
     } catch (e) {

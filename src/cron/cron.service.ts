@@ -2,6 +2,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Connection } from 'typeorm';
 import { LedgerStatus } from '../entities/wallet-ledger.entity';
+import { SubscriptionType } from '../entities/user.entity';
 
 @Injectable()
 export class CronService implements OnModuleInit {
@@ -53,6 +54,31 @@ export class CronService implements OnModuleInit {
       );
     } finally {
       await queryRunner.release();
+    }
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_2AM)
+  async updateStansCount() {
+    try {
+      // get all content creators
+      const creators: { id: number }[] = await this.connection.query(
+        `SELECT id FROM users WHERE is_deleted = false AND is_content_creator = true AND subscription_type = '${SubscriptionType.PAID}'`,
+      );
+      this.logger.log('Creators Fetched');
+      for (const creator of creators) {
+        // get their stans count
+        const [{ count }] = await this.connection.query(`
+      SELECT COUNT(*) as count FROM subscriptions WHERE subscribee_id = ${creator.id} AND is_deleted = false AND DATE(expiry_date) >= DATE(NOW())
+      `);
+        const stansCount = Number(count);
+        await this.connection.query(
+          `UPDATE users SET subscribers_count = ${stansCount} WHERE id = ${creator.id} AND is_deleted = false`,
+        );
+        this.logger.log('Stans Count Updated');
+      }
+      this.logger.log('All Stans Count Updated');
+    } catch (e) {
+      this.logger.error(`updateStansCount Failed: ${JSON.stringify(e)}`);
     }
   }
 
